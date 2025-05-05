@@ -17,9 +17,10 @@ logger.info("Начало выполнения скрипта")
 # Настройки
 BOT_TOKEN = "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs"  # Токен бота (@NewMiraPayBot)
 YOOMONEY_WALLET = "4100118178122985"  # Номер кошелька YooMoney (41001...)
-NOTIFICATION_SECRET = "CoqQlgE3E5cTzyAKY1LSiLU1"  # Секрет из настроек YooMoney
+NOTIFICATION_SECRET = "CoqQlgE3E5cTzyAKY1LSiLU1"  # Секрет YooMoney
 WEBHOOK_HOST = "favourite-brinna-createthisshit-eca5920c.koyeb.app"  # URL Koyeb
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
+SAVE_PAYMENT_PATH = "/save_payment"
 
 # Инициализация SQLite
 def init_db():
@@ -71,6 +72,11 @@ async def handle_yoomoney_notify(request):
         data = await request.post()
         logger.info(f"Получено YooMoney уведомление: {data}")
         
+        # Для теста: просто логируем и возвращаем 200
+        return web.Response(status=200, text="Test received")
+        
+        # Оригинальная логика (раскомментировать после теста)
+        """
         if not verify_yoomoney_notification(data):
             logger.error("Неверный sha1_hash в YooMoney уведомлении")
             return web.Response(status=400, text="Invalid hash")
@@ -96,13 +102,37 @@ async def handle_yoomoney_notify(request):
             conn.close()
         
         return web.Response(status=200)
+        """
     except Exception as e:
         logger.error(f"Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
+        return web.Response(status=500)
+
+# Обработчик сохранения label:user_id
+async def handle_save_payment(request):
+    try:
+        data = await request.json()
+        label = data.get("label")
+        user_id = data.get("user_id")
+        if not label or not user_id:
+            logger.error("Отсутствует label или user_id в запросе")
+            return web.Response(status=400, text="Missing label or user_id")
+        
+        conn = sqlite3.connect("payments.db")
+        c = conn.cursor()
+        c.execute("INSERT OR REPLACE INTO payments (label, user_id, status) VALUES (?, ?, ?)",
+                  (label, user_id, "pending"))
+        conn.commit()
+        conn.close()
+        logger.info(f"Сохранено: label={label}, user_id={user_id}")
+        return web.Response(status=200)
+    except Exception as e:
+        logger.error(f"Ошибка сохранения payment: {e}\n{traceback.format_exc()}")
         return web.Response(status=500)
 
 # Настройка веб-сервера
 app = web.Application()
 app.router.add_post(YOOMONEY_NOTIFY_PATH, handle_yoomoney_notify)
+app.router.add_post(SAVE_PAYMENT_PATH, handle_save_payment)
 
 # Запуск
 if __name__ == "__main__":
