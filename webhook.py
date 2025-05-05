@@ -18,7 +18,7 @@ logger.info("Начало выполнения скрипта")
 BOT_TOKEN = "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs"  # Токен бота (@NewMiraPayBot)
 YOOMONEY_WALLET = "4100118178122985"  # Номер кошелька YooMoney (41001...)
 NOTIFICATION_SECRET = "CoqQlgE3E5cTzyAKY1LSiLU1"  # Секрет YooMoney
-WEBHOOK_HOST = "favourite-brinna-createthisshit-eca5920c.koyeb.app"  # URL Koyeb
+WEBHOOK_HOST = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"  # URL Koyeb
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 SAVE_PAYMENT_PATH = "/save_payment"
 
