@@ -72,11 +72,6 @@ async def handle_yoomoney_notify(request):
         data = await request.post()
         logger.info(f"Получено YooMoney уведомление: {data}")
         
-        # Для теста: просто логируем и возвращаем 200
-        return web.Response(status=200, text="Test received")
-        
-        # Оригинальная логика (раскомментировать после теста)
-        """
         if not verify_yoomoney_notification(data):
             logger.error("Неверный sha1_hash в YooMoney уведомлении")
             return web.Response(status=400, text="Invalid hash")
@@ -102,7 +97,6 @@ async def handle_yoomoney_notify(request):
             conn.close()
         
         return web.Response(status=200)
-        """
     except Exception as e:
         logger.error(f"Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
         return web.Response(status=500)
