@@ -47,6 +47,7 @@ def verify_yoomoney_notification(data):
         data.get("label", "")
     ]
     sha1_hash = hashlib.sha1("&".join(params).encode()).hexdigest()
+    logger.info(f"Ожидаемый sha1_hash: {sha1_hash}, полученный: {data.get('sha1_hash', '')}, параметры: {params}")
     return sha1_hash == data.get("sha1_hash", "")
 
 # Отправка сообщения через Telegram API
@@ -71,16 +72,16 @@ async def handle_yoomoney_notify(request):
     try:
         data = await request.post()
         logger.info(f"Получено YooMoney уведомление: {data}")
-        
+       
         if not verify_yoomoney_notification(data):
             logger.error("Неверный sha1_hash в YooMoney уведомлении")
             return web.Response(status=400, text="Invalid hash")
-        
+       
         label = data.get("label")
         if not label:
             logger.error("Отсутствует label в YooMoney уведомлении")
             return web.Response(status=400, text="Missing label")
-        
+       
         if data.get("notification_type") == "p2p-incoming" and data.get("status") == "success":
             conn = sqlite3.connect("payments.db")
             c = conn.cursor()
@@ -95,7 +96,7 @@ async def handle_yoomoney_notify(request):
             else:
                 logger.error(f"Label {label} не найден в базе")
             conn.close()
-        
+       
         return web.Response(status=200)
     except Exception as e:
         logger.error(f"Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
@@ -110,7 +111,7 @@ async def handle_save_payment(request):
         if not label or not user_id:
             logger.error("Отсутствует label или user_id в запросе")
             return web.Response(status=400, text="Missing label or user_id")
-        
+       
         conn = sqlite3.connect("payments.db")
         c = conn.cursor()
         c.execute("INSERT OR REPLACE INTO payments (label, user_id, status) VALUES (?, ?, ?)",
