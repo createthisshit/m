@@ -23,7 +23,7 @@ WEBHOOK_HOST = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 SAVE_PAYMENT_PATH = "/save_payment"
 DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
-PRIVATE_CHANNEL_ID = "-1002640947060"  # Замени на ID твоего канала (например, @MyKaifChannel или -100xxxxxxxxxx)
+PRIVATE_CHANNEL_ID = -1002640947060  # Замени на ID твоего канала (например, @MyKaifChannel или -100xxxxxxxxxx)
 
 # Инициализация бота
 bot = Bot(token=BOT_TOKEN)
