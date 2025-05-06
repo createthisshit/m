@@ -82,7 +82,8 @@ async def handle_yoomoney_notify(request):
             logger.error("Отсутствует label в YooMoney уведомлении")
             return web.Response(status=400, text="Missing label")
        
-        if data.get("notification_type") == "p2p-incoming" and data.get("status") == "success":
+        # Поддержка p2p-incoming и card-incoming
+        if data.get("notification_type") in ["p2p-incoming", "card-incoming"]:
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
             c.execute("SELECT user_id FROM payments WHERE label = %s", (label,))
