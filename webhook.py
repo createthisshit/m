@@ -2,7 +2,8 @@ import logging
 import sys
 import psycopg2
 import hashlib
-from aiohttp import web, ClientSession
+from aiohttp import web
+from aiogram import Bot
 import traceback
 
 # Настройка логирования
@@ -21,7 +22,11 @@ NOTIFICATION_SECRET = "CoqQlgE3E5cTzyAKY1LSiLU1"
 WEBHOOK_HOST = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 SAVE_PAYMENT_PATH = "/save_payment"
-DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"  # Замени [YOUR-PASSWORD]
+DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
+PRIVATE_CHANNEL_ID = "-1002640947060"  # Замени на ID твоего канала (например, @MyKaifChannel или -100xxxxxxxxxx)
+
+# Инициализация бота
+bot = Bot(token=BOT_TOKEN)
 
 # Инициализация PostgreSQL
 def init_db():
@@ -50,22 +55,18 @@ def verify_yoomoney_notification(data):
     sha1_hash = hashlib.sha1("&".join(params).encode()).hexdigest()
     return sha1_hash == data.get("sha1_hash", "")
 
-# Отправка сообщения через Telegram API
-async def send_telegram_message(user_id, text):
-    async with ClientSession() as session:
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-        payload = {
-            "chat_id": user_id,
-            "text": text
-        }
-        try:
-            async with session.post(url, json=payload) as response:
-                if response.status == 200:
-                    logger.info(f"Сообщение отправлено user_id={user_id}")
-                else:
-                    logger.error(f"Ошибка отправки сообщения: {await response.text()}")
-        except Exception as e:
-            logger.error(f"Ошибка Telegram API: {e}")
+# Создание уникальной одноразовой инвайт-ссылки
+async def create_unique_invite_link(user_id):
+    try:
+        invite_link = await bot.create_chat_invite_link(
+            chat_id=PRIVATE_CHANNEL_ID,
+            member_limit=1,  # Ограничение на 1 пользователя
+            name=f"Invite for user_{user_id}"
+        )
+        return invite_link.invite_link
+    except Exception as e:
+        logger.error(f"Ошибка создания инвайт-ссылки: {e}")
+        return None
 
 # Обработчик YooMoney уведомлений
 async def handle_yoomoney_notify(request):
@@ -92,8 +93,14 @@ async def handle_yoomoney_notify(request):
                 user_id = result[0]
                 c.execute("UPDATE payments SET status = %s WHERE label = %s", ("success", label))
                 conn.commit()
-                await send_telegram_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
-                logger.info(f"Успешная транзакция для label={label}, user_id={user_id}")
+                await bot.send_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
+                invite_link = await create_unique_invite_link(user_id)
+                if invite_link:
+                    await bot.send_message(user_id, f"Присоединяйтесь к приватному каналу: {invite_link}")
+                    logger.info(f"Успешная транзакция и отправка инвайт-ссылки для label={label}, user_id={user_id}")
+                else:
+                    await bot.send_message(user_id, "Ошибка создания ссылки на канал. Свяжитесь с поддержкой.")
+                    logger.error(f"Не удалось создать инвайт-ссылку для user_id={user_id}")
             else:
                 logger.error(f"Label {label} не найден в базе")
             conn.close()
