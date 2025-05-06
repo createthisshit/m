@@ -47,7 +47,6 @@ def verify_yoomoney_notification(data):
         data.get("label", "")
     ]
     sha1_hash = hashlib.sha1("&".join(params).encode()).hexdigest()
-    logger.info(f"Ожидаемый sha1_hash: {sha1_hash}, полученный: {data.get('sha1_hash', '')}, параметры: {params}")
     return sha1_hash == data.get("sha1_hash", "")
 
 # Отправка сообщения через Telegram API
