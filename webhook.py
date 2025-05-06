@@ -17,7 +17,7 @@ logger.info("Начало выполнения скрипта")
 # Настройки
 BOT_TOKEN = "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs"
 YOOMONEY_WALLET = "4100118178122985"
-NOTIFICATION_SECRET = "CoqQlgE3E5cTzyAKISSUE1"
+NOTIFICATION_SECRET = "CoqQlgE3E5cTzyAKY1LSiLU1"
 WEBHOOK_HOST = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 SAVE_PAYMENT_PATH = "/save_payment"
