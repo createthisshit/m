@@ -1,6 +1,6 @@
 import logging
 import sys
-import sqlite3
+import psycopg2
 import hashlib
 from aiohttp import web, ClientSession
 import traceback
@@ -15,16 +15,17 @@ logger = logging.getLogger(__name__)
 logger.info("Начало выполнения скрипта")
 
 # Настройки
-BOT_TOKEN = "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs"  # Токен бота (@NewMiraPayBot)
-YOOMONEY_WALLET = "4100118178122985"  # Номер кошелька YooMoney (41001...)
-NOTIFICATION_SECRET = "CoqQlgE3E5cTzyAKY1LSiLU1"  # Секрет YooMoney
-WEBHOOK_HOST = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"  # URL Koyeb
+BOT_TOKEN = "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs"
+YOOMONEY_WALLET = "4100118178122985"
+NOTIFICATION_SECRET = "CoqQlgE3E5cTzyAKISSUE1"
+WEBHOOK_HOST = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 SAVE_PAYMENT_PATH = "/save_payment"
+DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"  # Замени [YOUR-PASSWORD]
 
-# Инициализация SQLite
+# Инициализация PostgreSQL
 def init_db():
-    conn = sqlite3.connect("payments.db")
+    conn = psycopg2.connect(DB_CONNECTION)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS payments
                  (label TEXT PRIMARY KEY, user_id TEXT, status TEXT)''')
@@ -47,7 +48,6 @@ def verify_yoomoney_notification(data):
         data.get("label", "")
     ]
     sha1_hash = hashlib.sha1("&".join(params).encode()).hexdigest()
-    logger.info(f"Ожидаемый sha1_hash: {sha1_hash}, полученный: {data.get('sha1_hash', '')}, параметры: {params}")
     return sha1_hash == data.get("sha1_hash", "")
 
 # Отправка сообщения через Telegram API
@@ -83,13 +83,13 @@ async def handle_yoomoney_notify(request):
             return web.Response(status=400, text="Missing label")
        
         if data.get("notification_type") == "p2p-incoming" and data.get("status") == "success":
-            conn = sqlite3.connect("payments.db")
+            conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
-            c.execute("SELECT user_id FROM payments WHERE label = ?", (label,))
+            c.execute("SELECT user_id FROM payments WHERE label = %s", (label,))
             result = c.fetchone()
             if result:
                 user_id = result[0]
-                c.execute("UPDATE payments SET status = ? WHERE label = ?", ("success", label))
+                c.execute("UPDATE payments SET status = %s WHERE label = %s", ("success", label))
                 conn.commit()
                 await send_telegram_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
                 logger.info(f"Успешная транзакция для label={label}, user_id={user_id}")
@@ -112,10 +112,10 @@ async def handle_save_payment(request):
             logger.error("Отсутствует label или user_id в запросе")
             return web.Response(status=400, text="Missing label or user_id")
        
-        conn = sqlite3.connect("payments.db")
+        conn = psycopg2.connect(DB_CONNECTION)
         c = conn.cursor()
-        c.execute("INSERT OR REPLACE INTO payments (label, user_id, status) VALUES (?, ?, ?)",
-                  (label, user_id, "pending"))
+        c.execute("INSERT INTO payments (label, user_id, status) VALUES (%s, %s, %s) ON CONFLICT (label) DO UPDATE SET user_id = %s, status = %s",
+                  (label, user_id, "pending", user_id, "pending"))
         conn.commit()
         conn.close()
         logger.info(f"Сохранено: label={label}, user_id={user_id}")
