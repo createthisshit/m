@@ -42,6 +42,68 @@ YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
 HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"
 
+import logging
+import sys
+import uuid
+import psycopg2
+import hashlib
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiohttp import web, ClientSession
+from urllib.parse import urlencode
+import traceback
+import asyncio
+import os
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
+logger.info("Начало выполнения скрипта")
+
+# Настройки для всех ботов
+BOTS = {
+    "bot1": {
+        "TOKEN": "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002640947060
+    },
+    "bot2": {
+        "TOKEN": "8173622705:AAE88BPX5k1mHuwFFBlWJS8ixxa36EmuCC0",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002609563244
+    },
+    "bot3": {
+        "TOKEN": "7946129764:AAGaQQXbkBqdYw4ftzR0DwzGaxKrC1xXBqQ",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002635743315
+    },
+    "bot4": {
+        "TOKEN": "7737672035:AAHpIGap7ZLt2eE1ZRT6j6YeSdnIuBp2Gqw",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002606081226
+    },
+}
+
+SAVE_PAYMENT_PATH = "/save_payment"
+YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
+HEALTH_PATH = "/health"
+DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
+HOST_URL = os.getenv("HOST_URL", "https://favourite-brinna-createthisshit-eca5920c.koyeb.app")
+
+# Определение платформы
+PLATFORM = "heroku" if os.getenv("DYNO") else "koyeb"
+logger.info(f"Обнаружена платформа: {PLATFORM}")
+logger.info(f"Инициализация {len(BOTS)} ботов")
+
 # Инициализация ботов
 bots = {}
 dispatchers = {}
@@ -214,16 +276,16 @@ def find_bot_id_by_label(label):
 async def handle_yoomoney_notify_generic(request):
     try:
         data = await request.post()
-        logger.info(f"Получено YooMoney уведомление: {dict(data)}")
+        logger.info(f"[{PLATFORM}] Получено YooMoney уведомление: {dict(data)}")
         
         label = data.get("label")
         if not label:
-            logger.error("Отсутствует label в YooMoney уведомлении")
+            logger.error(f"[{PLATFORM}] Отсутствует label в YooMoney уведомлении")
             return web.Response(status=400, text="Missing label")
         
         bot_id = find_bot_id_by_label(label)
         if not bot_id:
-            logger.error(f"Не найден bot_id для label={label}")
+            logger.error(f"[{PLATFORM}] Не найден bot_id для label={label}")
             return web.Response(status=400, text="Bot not found for label")
         
         if not verify_yoomoney_notification(data, bot_id):
@@ -253,7 +315,7 @@ async def handle_yoomoney_notify_generic(request):
         
         return web.Response(status=200)
     except Exception as e:
-        logger.error(f"Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
+        logger.error(f"[{PLATFORM}] Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
         return web.Response(status=500)
 
 # Обработчик YooMoney уведомлений (с bot_id)
@@ -294,7 +356,7 @@ async def handle_yoomoney_notify(request, bot_id):
         
         return web.Response(status=200)
     except Exception as e:
-        logger.error(f"[{bot_id}] Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
+        logger.error(f"[{bot_id}] Ошибка обработки YooMoney уведомлений: {e}\n{traceback.format_exc()}")
         return web.Response(status=500)
 
 # Обработчик сохранения label:user_id
@@ -320,17 +382,24 @@ async def handle_save_payment(request, bot_id):
         logger.error(f"[{bot_id}] Ошибка сохранения payment: {e}\n{traceback.format_exc()}")
         return web.Response(status=500)
 
+# Обработчик проверки здоровья
+async def handle_health(request):
+    logger.info(f"[{PLATFORM}] Получен запрос на /health")
+    return web.Response(status=200, text=f"Server is healthy, {len(BOTS)} bots running")
+
 # Настройка веб-сервера
 app = web.Application()
 app.router.add_post(YOOMONEY_NOTIFY_PATH, handle_yoomoney_notify_generic)
+app.router.add_get(HEALTH_PATH, handle_health)
+app.router.add_post(HEALTH_PATH, handle_health)
 for bot_id in BOTS:
     app.router.add_post(f"{YOOMONEY_NOTIFY_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_yoomoney_notify(request, bot_id))
     app.router.add_post(f"{SAVE_PAYMENT_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_save_payment(request, bot_id))
-logger.info(f"Настроены маршруты: {YOOMONEY_NOTIFY_PATH}, {YOOMONEY_NOTIFY_PATH}/{{bot_id}}, {SAVE_PAYMENT_PATH}/{{bot_id}}")
+logger.info(f"Настроены маршруты: {HEALTH_PATH}, {YOOMONEY_NOTIFY_PATH}, {YOOMONEY_NOTIFY_PATH}/{{bot_id}}, {SAVE_PAYMENT_PATH}/{{bot_id}}")
 
 # Запуск polling для всех ботов
 async def start_polling():
-    logger.info("Запуск polling для всех ботов")
+    logger.info(f"Запуск polling для {len(BOTS)} ботов")
     tasks = []
     for bot_id, dp in dispatchers.items():
         async def poll(dp, bot_id):
@@ -340,9 +409,9 @@ async def start_polling():
                 try:
                     logger.info(f"[{bot_id}] Попытка {attempt}: Очистка сессии и пропуск старых обновлений")
                     await bots[bot_id].delete_webhook(drop_pending_updates=True)
-                    await bots[bot_id].close()  # Закрываем сессию
+                    await bots[bot_id].session.close()
                     await asyncio.sleep(2)
-                    await bots[bot_id].get_session()  # Переоткрываем сессию
+                    await bots[bot_id].get_session()
                     await dp.skip_updates()
                     logger.info(f"[{bot_id}] Попытка {attempt}: Запуск polling")
                     await dp.start_polling(timeout=20)
@@ -352,7 +421,7 @@ async def start_polling():
                     if "Terminated by other getupdates request" in str(e).lower():
                         logger.warning(f"[{bot_id}] Обнаружен конфликт getUpdates, попытка очистки сессии")
                         await bots[bot_id].delete_webhook(drop_pending_updates=True)
-                        await bots[bot_id].close()
+                        await bots[bot_id].session.close()
                         await asyncio.sleep(10)
                     elif "Connection reset by peer" in str(e):
                         logger.warning(f"[{bot_id}] Ошибка соединения, повтор через 10 секунд")
@@ -382,6 +451,7 @@ async def main():
         await site.start()
         logger.info(f"Веб-сервер запущен на порту {port}")
         # Проверяем доступность маршрутов
+        logger.info(f"Маршрут доступен: {HOST_URL}{HEALTH_PATH}")
         logger.info(f"Маршрут доступен: {HOST_URL}{YOOMONEY_NOTIFY_PATH}")
         for bot_id in BOTS:
             logger.info(f"Маршрут доступен: {HOST_URL}{YOOMONEY_NOTIFY_PATH}/{bot_id}")
