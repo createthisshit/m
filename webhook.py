@@ -30,17 +30,17 @@ BOTS = {
         "PRIVATE_CHANNEL_ID": -1002640947060
     },
     "bot2": {
-        "TOKEN": "<8173622705:AAE88BPX5k1mHuwFFBlWJS8ixxa36EmuCC0>",  # Замени
-        "YOOMONEY_WALLET": "<4100118178122985>",
-        "NOTIFICATION_SECRET": "<CoqQlgE3E5cTzyAKY1LSiLU1>",
-        "PRIVATE_CHANNEL_ID": -1002609563244  # Замени
+        "TOKEN": "8173622705:AAE88BPX5k1mHuwFFBlWJS8ixxa36EmuCC0",  # Замени на реальный токен от @BotFather
+        "YOOMONEY_WALLET": "4100118178122985",  # Замени на кошелёк YooMoney
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",  # Замени на секрет YooMoney
+        "PRIVATE_CHANNEL_ID": -1002609563244  # Замени на ID твоего канала
     }
 }
 
 SAVE_PAYMENT_PATH = "/save_payment"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
-HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app/"  # Замени на URL твоего Koyeb-приложения
+HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app/"  # Замени на твой Koyeb-домен
 
 # Инициализация ботов
 bots = {}
