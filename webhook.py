@@ -40,7 +40,7 @@ BOTS = {
 SAVE_PAYMENT_PATH = "/save_payment"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
-HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"  # Замени на реальный домен Koyeb, например, https://<your-service-name>.koyeb.app
+HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"
 
 # Инициализация ботов
 bots = {}
@@ -138,11 +138,11 @@ for bot_id, dp in dispatchers.items():
                     logger.info(f"[{bot_id}] Отправка запроса на {save_payment_url} для label={payment_label}, user_id={user_id}")
                     async with session.post(save_payment_url, json={"label": payment_label, "user_id": user_id}) as response:
                         response_text = await response.text()
-                        logger.info(f"[{bot_id}] Ответ от /save_payment: status={response.status}, text={response_text}")
+                        logger.info(f"[{bot_id}] Ответ от /save_payment: status={response.status}, text={response_text[:100]}...")
                         if response.status == 200:
                             logger.info(f"[{bot_id}] label={payment_label} сохранён на /save_payment для user_id={user_id}")
                         else:
-                            logger.error(f"[{bot_id}] Ошибка сохранения на /save_payment: status={response.status}, text={response_text}")
+                            logger.error(f"[{bot_id}] Ошибка сохранения на /save_payment: status={response.status}, text={response_text[:100]}...")
                             await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                             return
                 except Exception as e:
@@ -160,20 +160,24 @@ for bot_id, dp in dispatchers.items():
 
 # Проверка подлинности YooMoney уведомления
 def verify_yoomoney_notification(data, bot_id):
-    config = BOTS[bot_id]
-    params = [
-        data.get("notification_type", ""),
-        data.get("operation_id", ""),
-        str(data.get("amount", "")),
-        data.get("currency", ""),
-        data.get("datetime", ""),
-        data.get("sender", ""),
-        data.get("codepro", ""),
-        config["NOTIFICATION_SECRET"],
-        data.get("label", "")
-    ]
-    sha1_hash = hashlib.sha1("&".join(params).encode()).hexdigest()
-    return sha1_hash == data.get("sha1_hash", "")
+    try:
+        config = BOTS[bot_id]
+        params = [
+            data.get("notification_type", ""),
+            data.get("operation_id", ""),
+            data.get("amount", ""),
+            data.get("currency", ""),
+            data.get("datetime", ""),
+            data.get("sender", ""),
+            data.get("codepro", ""),
+            config["NOTIFICATION_SECRET"],
+            data.get("label", "")
+        ]
+        sha1_hash = hashlib.sha1("&".join(params).encode()).hexdigest()
+        return sha1_hash == data.get("sha1_hash", "")
+    except Exception as e:
+        logger.error(f"[{bot_id}] Ошибка проверки YooMoney уведомления: {e}")
+        return False
 
 # Создание уникальной одноразовой инвайт-ссылки
 async def create_unique_invite_link(bot_id, user_id):
@@ -184,13 +188,75 @@ async def create_unique_invite_link(bot_id, user_id):
             member_limit=1,
             name=f"Invite for user_{user_id}"
         )
-        logger.info(f"[{bot_id}] Создана инвайт-ссылка для user_id={user_id}")
+        logger.info(f"[{bot_id}] Создана инвайт-ссылка для user_id={user_id}: {invite_link.invite_link}")
         return invite_link.invite_link
     except Exception as e:
-        logger.error(f"[{bot_id}] Ошибка создания инвайт-ссылки: {e}")
+        logger.error(f"[{bot_id}] Ошибка создания инвайт-ссылки для user_id={user_id}: {e}\n{traceback.format_exc()}")
         return None
 
-# Обработчик YooMoney уведомлений
+# Поиск bot_id по label
+def find_bot_id_by_label(label):
+    try:
+        for bot_id in BOTS:
+            conn = psycopg2.connect(DB_CONNECTION)
+            c = conn.cursor()
+            c.execute(f"SELECT user_id FROM payments_{bot_id} WHERE label = %s", (label,))
+            result = c.fetchone()
+            conn.close()
+            if result:
+                return bot_id
+        return None
+    except Exception as e:
+        logger.error(f"Ошибка поиска bot_id по label={label}: {e}")
+        return None
+
+# Обработчик YooMoney уведомлений (без bot_id)
+async def handle_yoomoney_notify_generic(request):
+    try:
+        data = await request.post()
+        logger.info(f"Получено YooMoney уведомление: {dict(data)}")
+        
+        label = data.get("label")
+        if not label:
+            logger.error("Отсутствует label в YooMoney уведомлении")
+            return web.Response(status=400, text="Missing label")
+        
+        bot_id = find_bot_id_by_label(label)
+        if not bot_id:
+            logger.error(f"Не найден bot_id для label={label}")
+            return web.Response(status=400, text="Bot not found for label")
+        
+        if not verify_yoomoney_notification(data, bot_id):
+            logger.error(f"[{bot_id}] Неверный sha1_hash в YooMoney уведомлении")
+            return web.Response(status=400, text="Invalid hash")
+        
+        if data.get("notification_type") in ["p2p-incoming", "card-incoming"]:
+            conn = psycopg2.connect(DB_CONNECTION)
+            c = conn.cursor()
+            c.execute(f"SELECT user_id FROM payments_{bot_id} WHERE label = %s", (label,))
+            result = c.fetchone()
+            if result:
+                user_id = result[0]
+                c.execute(f"UPDATE payments_{bot_id} SET status = %s WHERE label = %s", ("success", label))
+                conn.commit()
+                await bots[bot_id].send_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
+                invite_link = await create_unique_invite_link(bot_id, user_id)
+                if invite_link:
+                    await bots[bot_id].send_message(user_id, f"Присоединяйтесь к приватному каналу: {invite_link}")
+                    logger.info(f"[{bot_id}] Успешная транзакция и отправка инвайт-ссылки для label={label}, user_id={user_id}")
+                else:
+                    await bots[bot_id].send_message(user_id, "Ошибка создания ссылки на канал. Свяжитесь с поддержкой.")
+                    logger.error(f"[{bot_id}] Не удалось создать инвайт-ссылку для user_id={user_id}")
+            else:
+                logger.error(f"[{bot_id}] Label {label} не найден в базе")
+            conn.close()
+        
+        return web.Response(status=200)
+    except Exception as e:
+        logger.error(f"Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
+        return web.Response(status=500)
+
+# Обработчик YooMoney уведомлений (с bot_id)
 async def handle_yoomoney_notify(request, bot_id):
     try:
         data = await request.post()
@@ -256,9 +322,11 @@ async def handle_save_payment(request, bot_id):
 
 # Настройка веб-сервера
 app = web.Application()
+app.router.add_post(YOOMONEY_NOTIFY_PATH, handle_yoomoney_notify_generic)
 for bot_id in BOTS:
     app.router.add_post(f"{YOOMONEY_NOTIFY_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_yoomoney_notify(request, bot_id))
     app.router.add_post(f"{SAVE_PAYMENT_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_save_payment(request, bot_id))
+logger.info(f"Настроены маршруты: {YOOMONEY_NOTIFY_PATH}, {YOOMONEY_NOTIFY_PATH}/{{bot_id}}, {SAVE_PAYMENT_PATH}/{{bot_id}}")
 
 # Запуск polling для всех ботов
 async def start_polling():
@@ -267,28 +335,36 @@ async def start_polling():
     for bot_id, dp in dispatchers.items():
         async def poll(dp, bot_id):
             attempt = 1
-            while True:
+            max_attempts = 10
+            while attempt <= max_attempts:
                 try:
                     logger.info(f"[{bot_id}] Попытка {attempt}: Очистка сессии и пропуск старых обновлений")
-                    await bots[bot_id].delete_webhook()  # Очистка вебхуков
+                    await bots[bot_id].delete_webhook(drop_pending_updates=True)
+                    await bots[bot_id].close()  # Закрываем сессию
+                    await asyncio.sleep(2)
+                    await bots[bot_id].get_session()  # Переоткрываем сессию
                     await dp.skip_updates()
                     logger.info(f"[{bot_id}] Попытка {attempt}: Запуск polling")
                     await dp.start_polling(timeout=20)
                     logger.info(f"[{bot_id}] Polling успешно запущен")
                     break
                 except Exception as e:
-                    if "Terminated by other getupdates request" in str(e):
+                    if "Terminated by other getupdates request" in str(e).lower():
                         logger.warning(f"[{bot_id}] Обнаружен конфликт getUpdates, попытка очистки сессии")
-                        await bots[bot_id].delete_webhook()
-                        await asyncio.sleep(2)
+                        await bots[bot_id].delete_webhook(drop_pending_updates=True)
+                        await bots[bot_id].close()
+                        await asyncio.sleep(10)
+                    elif "Connection reset by peer" in str(e):
+                        logger.warning(f"[{bot_id}] Ошибка соединения, повтор через 10 секунд")
+                        await asyncio.sleep(10)
                     else:
                         logger.error(f"[{bot_id}] Попытка {attempt}: Ошибка запуска polling: {e}\n{traceback.format_exc()}")
-                    logger.info(f"[{bot_id}] Повторная попытка через 5 секунд...")
-                    await asyncio.sleep(5)
+                    logger.info(f"[{bot_id}] Повторная попытка через 10 секунд...")
+                    await asyncio.sleep(10)
                     attempt += 1
-                    if attempt > 5:
-                        logger.error(f"[{bot_id}] Превышено количество попыток запуска polling")
-                        raise Exception(f"[{bot_id}] Не удалось запустить polling")
+                    if attempt > max_attempts:
+                        logger.error(f"[{bot_id}] Превышено количество попыток ({max_attempts}) запуска polling")
+                        raise Exception(f"[{bot_id}] Не удалось запустить polling после {max_attempts} попыток")
         tasks.append(asyncio.create_task(poll(dp, bot_id)))
     await asyncio.gather(*tasks)
 
@@ -299,12 +375,17 @@ async def main():
         asyncio.create_task(start_polling())
         # Запускаем веб-сервер
         logger.info("Инициализация веб-сервера")
-        port = int(os.getenv("PORT", 8000))  # Koyeb использует 8000
+        port = int(os.getenv("PORT", 8000))
         runner = web.AppRunner(app)
         await runner.setup()
         site = web.TCPSite(runner, '0.0.0.0', port)
         await site.start()
         logger.info(f"Веб-сервер запущен на порту {port}")
+        # Проверяем доступность маршрутов
+        logger.info(f"Маршрут доступен: {HOST_URL}{YOOMONEY_NOTIFY_PATH}")
+        for bot_id in BOTS:
+            logger.info(f"Маршрут доступен: {HOST_URL}{YOOMONEY_NOTIFY_PATH}/{bot_id}")
+            logger.info(f"Маршрут доступен: {HOST_URL}{SAVE_PAYMENT_PATH}/{bot_id}")
         # Держим приложение работающим
         while True:
             await asyncio.sleep(3600)
