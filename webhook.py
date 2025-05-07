@@ -21,76 +21,123 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.info("Начало выполнения скрипта")
 
-# Настройки для каждого бота
-BOTS = {
-    "bot1": {
-        "TOKEN": "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs",
-        "YOOMONEY_WALLET": "4100118178122985",
-        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
-        "PRIVATE_CHANNEL_ID": -1002640947060
-    },
-    "bot2": {
-        "TOKEN": "8173622705:AAE88BPX5k1mHuwFFBlWJS8ixxa36EmuCC0",  # Замени на реальный токен
-        "YOOMONEY_WALLET": "4100118178122985",
-        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
-        "PRIVATE_CHANNEL_ID": -1002609563244
-    }
-}
-
-SAVE_PAYMENT_PATH = "/save_payment"
-YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
-DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
-HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"
-
-import logging
-import sys
-import uuid
-import psycopg2
-import hashlib
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiohttp import web, ClientSession
-from urllib.parse import urlencode
-import traceback
-import asyncio
-import os
-
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    stream=sys.stdout
-)
-logger = logging.getLogger(__name__)
-logger.info("Начало выполнения скрипта")
-
 # Настройки для всех ботов
 BOTS = {
     "bot1": {
         "TOKEN": "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs",
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
-        "PRIVATE_CHANNEL_ID": -1002640947060
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": (
+            "Тариф: Базовый\n"
+            "Стоимость: 2.00 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф' с базовым контентом."
+        )
     },
     "bot2": {
         "TOKEN": "8173622705:AAE88BPX5k1mHuwFFBlWJS8ixxa36EmuCC0",
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
-        "PRIVATE_CHANNEL_ID": -1002609563244
+        "PRIVATE_CHANNEL_ID": -1002609563244,
+        "DESCRIPTION": (
+            "Тариф: Премиум\n"
+            "Стоимость: 3.00 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Эксклюзивный доступ к каналу 'Мой кайф Премиум' с бонусами."
+        )
     },
     "bot3": {
         "TOKEN": "7946129764:AAGaQQXbkBqdYw4ftzR0DwzGaxKrC1xXBqQ",
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
-        "PRIVATE_CHANNEL_ID": -1002635743315
+        "PRIVATE_CHANNEL_ID": -1002635743315,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
     },
     "bot4": {
         "TOKEN": "7737672035:AAHpIGap7ZLt2eE1ZRT6j6YeSdnIuBp2Gqw",
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
-        "PRIVATE_CHANNEL_ID": -1002606081226
+        "PRIVATE_CHANNEL_ID": -1002606081226,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 4.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
     },
+    "bot5": {
+        "TOKEN": "<YOUR_FIFTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_FIFTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_FIFTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot6": {
+        "TOKEN": "<YOUR_SIXTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_SIXTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_SIXTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot7": {
+        "TOKEN": "<YOUR_SEVENTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_SEVENTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_SEVENTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot8": {
+        "TOKEN": "<YOUR_EIGHTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_EIGHTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_EIGHTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot9": {
+        "TOKEN": "<YOUR_NINTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_NINTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_NINTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot10": {
+        "TOKEN": "<YOUR_TENTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_TENTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_TENTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot11": {
+        "TOKEN": "<YOUR_ELEVENTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_ELEVENTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_ELEVENTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot12": {
+        "TOKEN": "<YOUR_TWELFTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_TWELFTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_TWELFTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot13": {
+        "TOKEN": "<YOUR_THIRTEENTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_THIRTEENTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_THIRTEENTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot14": {
+        "TOKEN": "<YOUR_FOURTEENTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_FOURTEENTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_FOURTEENTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    },
+    "bot15": {
+        "TOKEN": "<YOUR_FIFTEENTH_BOT_TOKEN>",
+        "YOOMONEY_WALLET": "<YOUR_FIFTEENTH_WALLET>",
+        "NOTIFICATION_SECRET": "<YOUR_FIFTEENTH_SECRET>",
+        "PRIVATE_CHANNEL_ID": -1002640947060,
+        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+    }
 }
 
 SAVE_PAYMENT_PATH = "/save_payment"
@@ -100,7 +147,7 @@ DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-n
 HOST_URL = os.getenv("HOST_URL", "https://favourite-brinna-createthisshit-eca5920c.koyeb.app")
 
 # Определение платформы
-PLATFORM = "heroku" if os.getenv("DYNO") else "koyeb"
+PLATFORM = "koyeb"
 logger.info(f"Обнаружена платформа: {PLATFORM}")
 logger.info(f"Инициализация {len(BOTS)} ботов")
 
@@ -144,13 +191,7 @@ for bot_id, dp in dispatchers.items():
             logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Пополнить", callback_data=f"pay_{bot_id}"))
-            welcome_text = (
-                "Тариф: фулл\n"
-                "Стоимость: 2.00 🇷🇺RUB\n"
-                "Срок действия: 1 месяц\n\n"
-                "Вы получите доступ к следующим ресурсам:\n"
-                "• Мой кайф (канал)"
-            )
+            welcome_text = BOTS[bot_id]["DESCRIPTION"]
             await message.answer(welcome_text, reply_markup=keyboard)
             logger.info(f"[{bot_id}] Отправлен ответ на /start для user_id={user_id}")
         except Exception as e:
