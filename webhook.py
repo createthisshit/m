@@ -1,3 +1,4 @@
+import logging
 import sys
 import uuid
 import psycopg2
