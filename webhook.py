@@ -42,6 +42,50 @@ YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
 HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app/"  # Замени на твой Koyeb-домен
 
+import logging
+import sys
+import uuid
+import psycopg2
+import hashlib
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiohttp import web, ClientSession
+from urllib.parse import urlencode
+import traceback
+import asyncio
+import os
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
+logger.info("Начало выполнения скрипта")
+
+# Настройки для каждого бота
+BOTS = {
+    "bot1": {
+        "TOKEN": "7669060547:AAF1zdVIBcmmFKQGhQ7UGUT8foFKW4EBVxs",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002640947060
+    },
+    "bot2": {
+        "TOKEN": "8173622705:AAE88BPX5k1mHuwFFBlWJS8ixxa36EmuCC0",  # Замени на реальный токен
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002609563244
+    }
+}
+
+SAVE_PAYMENT_PATH = "/save_payment"
+YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
+DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
+HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app/"  # Замени на реальный домен Koyeb, например, https://<your-service-name>.koyeb.app
+
 # Инициализация ботов
 bots = {}
 dispatchers = {}
@@ -134,11 +178,15 @@ for bot_id, dp in dispatchers.items():
             # Отправка label:user_id на /save_payment
             async with ClientSession() as session:
                 try:
-                    async with session.post(f"{HOST_URL}{SAVE_PAYMENT_PATH}/{bot_id}", json={"label": payment_label, "user_id": user_id}) as response:
+                    save_payment_url = f"{HOST_URL}{SAVE_PAYMENT_PATH}/{bot_id}"
+                    logger.info(f"[{bot_id}] Отправка запроса на {save_payment_url} для label={payment_label}, user_id={user_id}")
+                    async with session.post(save_payment_url, json={"label": payment_label, "user_id": user_id}) as response:
+                        response_text = await response.text()
+                        logger.info(f"[{bot_id}] Ответ от /save_payment: status={response.status}, text={response_text}")
                         if response.status == 200:
                             logger.info(f"[{bot_id}] label={payment_label} сохранён на /save_payment для user_id={user_id}")
                         else:
-                            logger.error(f"[{bot_id}] Ошибка сохранения на /save_payment: {await response.text()}")
+                            logger.error(f"[{bot_id}] Ошибка сохранения на /save_payment: status={response.status}, text={response_text}")
                             await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                             return
                 except Exception as e:
@@ -151,7 +199,7 @@ for bot_id, dp in dispatchers.items():
             await bots[bot_id].send_message(chat_id, "Перейдите по ссылке для оплаты 2 рублей:", reply_markup=keyboard)
             logger.info(f"[{bot_id}] Отправлена ссылка на оплату для user_id={user_id}, label={payment_label}")
         except Exception as e:
-            logger.error(f"[{bot_id}] Ошибка в обработчике /pay: {e}")
+            logger.error(f"[{bot_id}] Ошибка в обработчике /pay: {e}\n{traceback.format_exc()}")
             await bots[bot_id].send_message(chat_id, "Произошла ошибка при создании платежа, попробуйте позже.")
 
 # Проверка подлинности YooMoney уведомления
@@ -180,6 +228,7 @@ async def create_unique_invite_link(bot_id, user_id):
             member_limit=1,
             name=f"Invite for user_{user_id}"
         )
+        logger.info(f"[{bot_id}] Создана инвайт-ссылка для user_id={user_id}")
         return invite_link.invite_link
     except Exception as e:
         logger.error(f"[{bot_id}] Ошибка создания инвайт-ссылки: {e}")
@@ -189,7 +238,7 @@ async def create_unique_invite_link(bot_id, user_id):
 async def handle_yoomoney_notify(request, bot_id):
     try:
         data = await request.post()
-        logger.info(f"[{bot_id}] Получено YooMoney уведомление: {data}")
+        logger.info(f"[{bot_id}] Получено YooMoney уведомление: {dict(data)}")
         
         if not verify_yoomoney_notification(data, bot_id):
             logger.error(f"[{bot_id}] Неверный sha1_hash в YooMoney уведомлении")
@@ -232,6 +281,7 @@ async def handle_save_payment(request, bot_id):
         data = await request.json()
         label = data.get("label")
         user_id = data.get("user_id")
+        logger.info(f"[{bot_id}] Получен запрос на /save_payment: label={label}, user_id={user_id}")
         if not label or not user_id:
             logger.error(f"[{bot_id}] Отсутствует label или user_id в запросе")
             return web.Response(status=400, text="Missing label or user_id")
@@ -263,14 +313,20 @@ async def start_polling():
             attempt = 1
             while True:
                 try:
-                    logger.info(f"[{bot_id}] Попытка {attempt}: Пропуск старых обновлений")
+                    logger.info(f"[{bot_id}] Попытка {attempt}: Очистка сессии и пропуск старых обновлений")
+                    await bots[bot_id].delete_webhook()  # Очистка вебхуков
                     await dp.skip_updates()
                     logger.info(f"[{bot_id}] Попытка {attempt}: Запуск polling")
                     await dp.start_polling(timeout=20)
                     logger.info(f"[{bot_id}] Polling успешно запущен")
                     break
                 except Exception as e:
-                    logger.error(f"[{bot_id}] Попытка {attempt}: Ошибка запуска polling: {e}\n{traceback.format_exc()}")
+                    if "Terminated by other getupdates request" in str(e):
+                        logger.warning(f"[{bot_id}] Обнаружен конфликт getUpdates, попытка очистки сессии")
+                        await bots[bot_id].delete_webhook()
+                        await asyncio.sleep(2)
+                    else:
+                        logger.error(f"[{bot_id}] Попытка {attempt}: Ошибка запуска polling: {e}\n{traceback.format_exc()}")
                     logger.info(f"[{bot_id}] Повторная попытка через 5 секунд...")
                     await asyncio.sleep(5)
                     attempt += 1
