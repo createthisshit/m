@@ -40,7 +40,7 @@ BOTS = {
 SAVE_PAYMENT_PATH = "/save_payment"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
-HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app/"  # Замени на реальный домен Koyeb, например, https://<your-service-name>.koyeb.app
+HOST_URL = "https://favourite-brinna-createthisshit-eca5920c.koyeb.app"  # Замени на реальный домен Koyeb, например, https://<your-service-name>.koyeb.app
 
 # Инициализация ботов
 bots = {}
