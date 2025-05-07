@@ -28,6 +28,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002640947060,
+        "PRICE": 2.00,
         "DESCRIPTION": (
             "Тариф: Базовый\n"
             "Стоимость: 2.00 🇷🇺RUB\n"
@@ -40,6 +41,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002609563244,
+        "PRICE": 3.00,
         "DESCRIPTION": (
             "Тариф: Премиум\n"
             "Стоимость: 3.00 🇷🇺RUB\n"
@@ -52,14 +54,26 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002635743315,
-        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+        "PRICE": 4.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
     },
     "bot4": {
         "TOKEN": "7737672035:AAHpIGap7ZLt2eE1ZRT6j6YeSdnIuBp2Gqw",
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002606081226,
-        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 4.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
+        "PRICE": 3.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
     },
 }
 
@@ -114,7 +128,8 @@ for bot_id, dp in dispatchers.items():
             logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Пополнить", callback_data=f"pay_{bot_id}"))
-            welcome_text = BOTS[bot_id]["DESCRIPTION"]
+            config = BOTS[bot_id]
+            welcome_text = config["DESCRIPTION"].format(price=config["PRICE"])
             await message.answer(welcome_text, reply_markup=keyboard)
             logger.info(f"[{bot_id}] Отправлен ответ на /start для user_id={user_id}")
         except Exception as e:
@@ -141,7 +156,7 @@ for bot_id, dp in dispatchers.items():
                 "quickpay-form": "shop",
                 "paymentType": "AC",
                 "targets": f"Оплата подписки для user_id={user_id}",
-                "sum": 2.00,
+                "sum": config["PRICE"],
                 "label": payment_label,
                 "receiver": config["YOOMONEY_WALLET"],
                 "successURL": f"https://t.me/{(await bots[bot_id].get_me()).username}"
@@ -178,7 +193,7 @@ for bot_id, dp in dispatchers.items():
             
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Оплатить", url=payment_url))
-            await bots[bot_id].send_message(chat_id, "Перейдите по ссылке для оплаты 2 рублей:", reply_markup=keyboard)
+            await bots[bot_id].send_message(chat_id, f"Перейдите по ссылке для оплаты {config['PRICE']} рублей:", reply_markup=keyboard)
             logger.info(f"[{bot_id}] Отправлена ссылка на оплату для user_id={user_id}, label={payment_label}")
         except Exception as e:
             logger.error(f"[{bot_id}] Ошибка в обработчике /pay: {e}\n{traceback.format_exc()}")
