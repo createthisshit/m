@@ -251,11 +251,12 @@ init_postgres_db()
 
 # Обработчики команд для каждого бота
 for bot_id, dp in dispatchers.items():
-    async def pay_command(message: types.Message, bot_id=bot_id):
+    @dp.message_handler(commands=['start'])
+    async def start_command(message: types.Message, bot_id=bot_id):
         try:
             user_id = str(message.from_user.id)
             chat_id = message.chat.id
-            logger.info(f"[{bot_id}] Запуск pay_command для user_id={user_id}")
+            logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
 
             # Создание платёжной ссылки
             payment_label = str(uuid.uuid4())
@@ -299,58 +300,18 @@ for bot_id, dp in dispatchers.items():
                     await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                     return
             
+            # Формируем ответ с кнопкой
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Оплатить", url=payment_url))
-            await bots[bot_id].send_message(chat_id, f"Перейдите по ссылке для оплаты {config['PRICE']} рублей:", reply_markup=keyboard)
+            welcome_text = config["DESCRIPTION"].format(price=config["PRICE"])
+            await message.answer(
+                f"{welcome_text}\n\nПерейдите по ссылке для оплаты {config['PRICE']} рублей:",
+                reply_markup=keyboard
+            )
             logger.info(f"[{bot_id}] Отправлена ссылка на оплату для user_id={user_id}, label={payment_label}")
         except Exception as e:
-            logger.error(f"[{bot_id}] Ошибка в pay_command: {e}\n{traceback.format_exc()}")
-            await bots[bot_id].send_message(chat_id, "Произошла ошибка при создании платежа, попробуйте позже.")
-
-    @dp.message_handler(commands=['start'])
-    async def start_command(message: types.Message, bot_id=bot_id):
-        try:
-            user_id = str(message.from_user.id)
-            logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
-            keyboard = InlineKeyboardMarkup()
-            keyboard.add(InlineKeyboardButton(text="Пополнить", callback_data=f"pay_{bot_id}"))
-            config = BOTS[bot_id]
-            welcome_text = config["DESCRIPTION"].format(price=config["PRICE"])
-            await message.answer(welcome_text, reply_markup=keyboard)
-            logger.info(f"[{bot_id}] Отправлен ответ на /start для user_id={user_id}")
-        except Exception as e:
-            logger.error(f"[{bot_id}] Ошибка в обработчике /start: {e}")
+            logger.error(f"[{bot_id}] Ошибка в обработчике /start: {e}\n{traceback.format_exc()}")
             await message.answer("Произошла ошибка, попробуйте позже.")
-
-    @dp.message_handler(commands=['pay'])
-    async def pay_command_handler(message: types.Message, bot_id=bot_id):
-        await pay_command(message, bot_id)
-
-    @dp.callback_query_handler(lambda c: c.data == f"pay_{bot_id}")
-    async def pay_callback(callback_query: types.CallbackQuery, bot_id=bot_id):
-        try:
-            user_id = str(callback_query.from_user.id)
-            chat_id = callback_query.message.chat.id
-            logger.info(f"[{bot_id}] Получен callback pay_{bot_id} от user_id={user_id}")
-            
-            # Создаём фейковый объект сообщения для pay_command
-            fake_message = types.Message(
-                message_id=callback_query.message.message_id,
-                from_user=callback_query.from_user,
-                chat=callback_query.message.chat,
-                date=callback_query.message.date,
-                text="/pay"
-            )
-            
-            # Вызываем pay_command напрямую
-            await pay_command(fake_message, bot_id)
-            
-            # Подтверждаем callback
-            await callback_query.answer()
-            logger.info(f"[{bot_id}] Выполнен pay_command для user_id={user_id}")
-        except Exception as e:
-            logger.error(f"[{bot_id}] Ошибка в обработчике callback pay_{bot_id}: {e}\n{traceback.format_exc()}")
-            await callback_query.answer("Произошла ошибка, попробуйте позже.")
 
 # Проверка подлинности YooMoney уведомления
 def verify_yoomoney_notification(data, bot_id):
