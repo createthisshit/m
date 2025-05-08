@@ -210,10 +210,8 @@ BOTS = {
 SAVE_PAYMENT_PATH = "/save_payment"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 HEALTH_PATH = "/health"
-DB_CONNECTION =
-"postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
-HOST_URL = os.getenv("HOST_URL",
-"https://favourite-brinna-createthisshit-eca5920c.koyeb.app")
+DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
+HOST_URL = os.getenv("HOST_URL", "https://favourite-brinna-createthisshit-eca5920c.koyeb.app")
 
 # Определение платформы
 PLATFORM = "koyeb"
@@ -269,79 +267,57 @@ for bot_id, dp in dispatchers.items():
                 "sum": config["PRICE"],
                 "label": payment_label,
                 "receiver": config["YOOMONEY_WALLET"],
-                "successURL": f"https://t.me/{(await
-bots[bot_id].get_me()).username}"
+                "successURL": f"https://t.me/{(await bots[bot_id].get_me()).username}"
             }
-            payment_url =
-f"https://yoomoney.ru/quickpay/confirm.xml?{urlencode(payment_params)}"
-
+            payment_url = f"https://yoomoney.ru/quickpay/confirm.xml?{urlencode(payment_params)}"
+            
             # Сохранение label:user_id в PostgreSQL
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
-            c.execute(f"INSERT INTO payments_{bot_id} (label, user_id,
-status) VALUES (%s, %s, %s)",
+            c.execute(f"INSERT INTO payments_{bot_id} (label, user_id, status) VALUES (%s, %s, %s)",
                       (payment_label, user_id, "pending"))
             conn.commit()
             conn.close()
-            logger.info(f"[{bot_id}] Сохранено в PostgreSQL:
-label={payment_label}, user_id={user_id}")
-
+            logger.info(f"[{bot_id}] Сохранено в PostgreSQL: label={payment_label}, user_id={user_id}")
+            
             # Отправка label:user_id на /save_payment
             async with ClientSession() as session:
                 try:
                     save_payment_url = f"{HOST_URL}{SAVE_PAYMENT_PATH}/{bot_id}"
-                    logger.info(f"[{bot_id}] Отправка запроса на
-{save_payment_url} для label={payment_label}, user_id={user_id}")
-                    async with session.post(save_payment_url,
-json={"label": payment_label, "user_id": user_id}) as response:
+                    logger.info(f"[{bot_id}] Отправка запроса на {save_payment_url} для label={payment_label}, user_id={user_id}")
+                    async with session.post(save_payment_url, json={"label": payment_label, "user_id": user_id}) as response:
                         response_text = await response.text()
-                        logger.info(f"[{bot_id}] Ответ от
-/save_payment: status={response.status},
-text={response_text[:100]}...")
+                        logger.info(f"[{bot_id}] Ответ от /save_payment: status={response.status}, text={response_text[:100]}...")
                         if response.status == 200:
-                            logger.info(f"[{bot_id}]
-label={payment_label} сохранён на /save_payment для
-user_id={user_id}")
+                            logger.info(f"[{bot_id}] label={payment_label} сохранён на /save_payment для user_id={user_id}")
                         else:
-                            logger.error(f"[{bot_id}] Ошибка
-сохранения на /save_payment: status={response.status},
-text={response_text[:100]}...")
-                            await bots[bot_id].send_message(chat_id,
-"Ошибка сервера, попробуйте позже.")
+                            logger.error(f"[{bot_id}] Ошибка сохранения на /save_payment: status={response.status}, text={response_text[:100]}...")
+                            await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                             return
                 except Exception as e:
-                    logger.error(f"[{bot_id}] Ошибка связи с
-/save_payment: {e}")
-                    await bots[bot_id].send_message(chat_id, "Ошибка
-сервера, попробуйте позже.")
+                    logger.error(f"[{bot_id}] Ошибка связи с /save_payment: {e}")
+                    await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                     return
-
+            
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Оплатить", url=payment_url))
-            await bots[bot_id].send_message(chat_id, f"Перейдите по
-ссылке для оплаты {config['PRICE']} рублей:", reply_markup=keyboard)
-            logger.info(f"[{bot_id}] Отправлена ссылка на оплату для
-user_id={user_id}, label={payment_label}")
+            await bots[bot_id].send_message(chat_id, f"Перейдите по ссылке для оплаты {config['PRICE']} рублей:", reply_markup=keyboard)
+            logger.info(f"[{bot_id}] Отправлена ссылка на оплату для user_id={user_id}, label={payment_label}")
         except Exception as e:
-            logger.error(f"[{bot_id}] Ошибка в pay_command:
-{e}\n{traceback.format_exc()}")
-            await bots[bot_id].send_message(chat_id, "Произошла ошибка
-при создании платежа, попробуйте позже.")
+            logger.error(f"[{bot_id}] Ошибка в pay_command: {e}\n{traceback.format_exc()}")
+            await bots[bot_id].send_message(chat_id, "Произошла ошибка при создании платежа, попробуйте позже.")
 
     @dp.message_handler(commands=['start'])
     async def start_command(message: types.Message, bot_id=bot_id):
         try:
             user_id = str(message.from_user.id)
-            logger.info(f"[{bot_id}] Получена команда /start от
-user_id={user_id}")
+            logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
             keyboard = InlineKeyboardMarkup()
-            keyboard.add(InlineKeyboardButton(text="Пополнить",
-callback_data=f"pay_{bot_id}"))
+            keyboard.add(InlineKeyboardButton(text="Пополнить", callback_data=f"pay_{bot_id}"))
             config = BOTS[bot_id]
             welcome_text = config["DESCRIPTION"].format(price=config["PRICE"])
             await message.answer(welcome_text, reply_markup=keyboard)
-            logger.info(f"[{bot_id}] Отправлен ответ на /start для
-user_id={user_id}")
+            logger.info(f"[{bot_id}] Отправлен ответ на /start для user_id={user_id}")
         except Exception as e:
             logger.error(f"[{bot_id}] Ошибка в обработчике /start: {e}")
             await message.answer("Произошла ошибка, попробуйте позже.")
@@ -355,9 +331,8 @@ user_id={user_id}")
         try:
             user_id = str(callback_query.from_user.id)
             chat_id = callback_query.message.chat.id
-            logger.info(f"[{bot_id}] Получен callback pay_{bot_id} от
-user_id={user_id}")
-
+            logger.info(f"[{bot_id}] Получен callback pay_{bot_id} от user_id={user_id}")
+            
             # Создаём фейковый объект сообщения для pay_command
             fake_message = types.Message(
                 message_id=callback_query.message.message_id,
@@ -366,17 +341,15 @@ user_id={user_id}")
                 date=callback_query.message.date,
                 text="/pay"
             )
-
+            
             # Вызываем pay_command напрямую
             await pay_command(fake_message, bot_id)
-
+            
             # Подтверждаем callback
             await callback_query.answer()
-            logger.info(f"[{bot_id}] Выполнен pay_command для
-user_id={user_id}")
+            logger.info(f"[{bot_id}] Выполнен pay_command для user_id={user_id}")
         except Exception as e:
-            logger.error(f"[{bot_id}] Ошибка в обработчике callback
-pay_{bot_id}: {e}\n{traceback.format_exc()}")
+            logger.error(f"[{bot_id}] Ошибка в обработчике callback pay_{bot_id}: {e}\n{traceback.format_exc()}")
             await callback_query.answer("Произошла ошибка, попробуйте позже.")
 
 # Проверка подлинности YooMoney уведомления
@@ -409,12 +382,10 @@ async def create_unique_invite_link(bot_id, user_id):
             member_limit=1,
             name=f"Invite for user_{user_id}"
         )
-        logger.info(f"[{bot_id}] Создана инвайт-ссылка для
-user_id={user_id}: {invite_link.invite_link}")
+        logger.info(f"[{bot_id}] Создана инвайт-ссылка для user_id={user_id}: {invite_link.invite_link}")
         return invite_link.invite_link
     except Exception as e:
-        logger.error(f"[{bot_id}] Ошибка создания инвайт-ссылки для
-user_id={user_id}: {e}\n{traceback.format_exc()}")
+        logger.error(f"[{bot_id}] Ошибка создания инвайт-ссылки для user_id={user_id}: {e}\n{traceback.format_exc()}")
         return None
 
 # Поиск bot_id по label
@@ -423,8 +394,7 @@ def find_bot_id_by_label(label):
         for bot_id in BOTS:
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
-            c.execute(f"SELECT user_id FROM payments_{bot_id} WHERE
-label = %s", (label,))
+            c.execute(f"SELECT user_id FROM payments_{bot_id} WHERE label = %s", (label,))
             result = c.fetchone()
             conn.close()
             if result:
@@ -439,55 +409,45 @@ async def handle_yoomoney_notify_generic(request):
     try:
         data = await request.post()
         logger.info(f"[{PLATFORM}] Получено YooMoney уведомление: {dict(data)}")
-
+        
         label = data.get("label")
         if not label:
-            logger.error(f"[{PLATFORM}] Отсутствует label в YooMoney
-уведомлении")
+            logger.error(f"[{PLATFORM}] Отсутствует label в YooMoney уведомлении")
             return web.Response(status=400, text="Missing label")
-
+        
         bot_id = find_bot_id_by_label(label)
         if not bot_id:
             logger.error(f"[{PLATFORM}] Не найден bot_id для label={label}")
             return web.Response(status=400, text="Bot not found for label")
-
+        
         if not verify_yoomoney_notification(data, bot_id):
-            logger.error(f"[{bot_id}] Неверный sha1_hash в YooMoney
-уведомлении")
+            logger.error(f"[{bot_id}] Неверный sha1_hash в YooMoney уведомлении")
             return web.Response(status=400, text="Invalid hash")
-
+        
         if data.get("notification_type") in ["p2p-incoming", "card-incoming"]:
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
-            c.execute(f"SELECT user_id FROM payments_{bot_id} WHERE
-label = %s", (label,))
+            c.execute(f"SELECT user_id FROM payments_{bot_id} WHERE label = %s", (label,))
             result = c.fetchone()
             if result:
                 user_id = result[0]
-                c.execute(f"UPDATE payments_{bot_id} SET status = %s
-WHERE label = %s", ("success", label))
+                c.execute(f"UPDATE payments_{bot_id} SET status = %s WHERE label = %s", ("success", label))
                 conn.commit()
-                await bots[bot_id].send_message(user_id, "Оплата
-успешно получена! Доступ к каналу активирован.")
+                await bots[bot_id].send_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
                 invite_link = await create_unique_invite_link(bot_id, user_id)
                 if invite_link:
-                    await bots[bot_id].send_message(user_id,
-f"Присоединяйтесь к приватному каналу: {invite_link}")
-                    logger.info(f"[{bot_id}] Успешная транзакция и
-отправка инвайт-ссылки для label={label}, user_id={user_id}")
+                    await bots[bot_id].send_message(user_id, f"Присоединяйтесь к приватному каналу: {invite_link}")
+                    logger.info(f"[{bot_id}] Успешная транзакция и отправка инвайт-ссылки для label={label}, user_id={user_id}")
                 else:
-                    await bots[bot_id].send_message(user_id, "Ошибка
-создания ссылки на канал. Свяжитесь с поддержкой.")
-                    logger.error(f"[{bot_id}] Не удалось создать
-инвайт-ссылку для user_id={user_id}")
+                    await bots[bot_id].send_message(user_id, "Ошибка создания ссылки на канал. Свяжитесь с поддержкой.")
+                    logger.error(f"[{bot_id}] Не удалось создать инвайт-ссылку для user_id={user_id}")
             else:
                 logger.error(f"[{bot_id}] Label {label} не найден в базе")
             conn.close()
-
+        
         return web.Response(status=200)
     except Exception as e:
-        logger.error(f"[{PLATFORM}] Ошибка обработки YooMoney
-уведомления: {e}\n{traceback.format_exc()}")
+        logger.error(f"[{PLATFORM}] Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
         return web.Response(status=500)
 
 # Обработчик YooMoney уведомлений (с bot_id)
@@ -495,49 +455,40 @@ async def handle_yoomoney_notify(request, bot_id):
     try:
         data = await request.post()
         logger.info(f"[{bot_id}] Получено YooMoney уведомление: {dict(data)}")
-
+        
         if not verify_yoomoney_notification(data, bot_id):
-            logger.error(f"[{bot_id}] Неверный sha1_hash в YooMoney
-уведомлении")
+            logger.error(f"[{bot_id}] Неверный sha1_hash в YooMoney уведомлении")
             return web.Response(status=400, text="Invalid hash")
-
+        
         label = data.get("label")
         if not label:
             logger.error(f"[{bot_id}] Отсутствует label в YooMoney уведомлении")
             return web.Response(status=400, text="Missing label")
-
+        
         if data.get("notification_type") in ["p2p-incoming", "card-incoming"]:
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
-            c.execute(f"SELECT user_id FROM payments_{bot_id} WHERE
-label = %s", (label,))
+            c.execute(f"SELECT user_id FROM payments_{bot_id} WHERE label = %s", (label,))
             result = c.fetchone()
             if result:
                 user_id = result[0]
-                c.execute(f"UPDATE payments_{bot_id} SET status = %s
-WHERE label = %s", ("success", label))
+                c.execute(f"UPDATE payments_{bot_id} SET status = %s WHERE label = %s", ("success", label))
                 conn.commit()
-                await bots[bot_id].send_message(user_id, "Оплата
-успешно получена! Доступ к каналу активирован.")
+                await bots[bot_id].send_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
                 invite_link = await create_unique_invite_link(bot_id, user_id)
                 if invite_link:
-                    await bots[bot_id].send_message(user_id,
-f"Присоединяйтесь к приватному каналу: {invite_link}")
-                    logger.info(f"[{bot_id}] Успешная транзакция и
-отправка инвайт-ссылки для label={label}, user_id={user_id}")
+                    await bots[bot_id].send_message(user_id, f"Присоединяйтесь к приватному каналу: {invite_link}")
+                    logger.info(f"[{bot_id}] Успешная транзакция и отправка инвайт-ссылки для label={label}, user_id={user_id}")
                 else:
-                    await bots[bot_id].send_message(user_id, "Ошибка
-создания ссылки на канал. Свяжитесь с поддержкой.")
-                    logger.error(f"[{bot_id}] Не удалось создать
-инвайт-ссылку для user_id={user_id}")
+                    await bots[bot_id].send_message(user_id, "Ошибка создания ссылки на канал. Свяжитесь с поддержкой.")
+                    logger.error(f"[{bot_id}] Не удалось создать инвайт-ссылку для user_id={user_id}")
             else:
                 logger.error(f"[{bot_id}] Label {label} не найден в базе")
             conn.close()
-
+        
         return web.Response(status=200)
     except Exception as e:
-        logger.error(f"[{bot_id}] Ошибка обработки YooMoney
-уведомлений: {e}\n{traceback.format_exc()}")
+        logger.error(f"[{bot_id}] Ошибка обработки YooMoney уведомлений: {e}\n{traceback.format_exc()}")
         return web.Response(status=500)
 
 # Обработчик сохранения label:user_id
@@ -546,32 +497,27 @@ async def handle_save_payment(request, bot_id):
         data = await request.json()
         label = data.get("label")
         user_id = data.get("user_id")
-        logger.info(f"[{bot_id}] Получен запрос на /save_payment:
-label={label}, user_id={user_id}")
+        logger.info(f"[{bot_id}] Получен запрос на /save_payment: label={label}, user_id={user_id}")
         if not label or not user_id:
             logger.error(f"[{bot_id}] Отсутствует label или user_id в запросе")
             return web.Response(status=400, text="Missing label or user_id")
-
+        
         conn = psycopg2.connect(DB_CONNECTION)
         c = conn.cursor()
-        c.execute(f"INSERT INTO payments_{bot_id} (label, user_id,
-status) VALUES (%s, %s, %s) ON CONFLICT (label) DO UPDATE SET user_id
-= %s, status = %s",
+        c.execute(f"INSERT INTO payments_{bot_id} (label, user_id, status) VALUES (%s, %s, %s) ON CONFLICT (label) DO UPDATE SET user_id = %s, status = %s",
                   (label, user_id, "pending", user_id, "pending"))
         conn.commit()
         conn.close()
         logger.info(f"[{bot_id}] Сохранено: label={label}, user_id={user_id}")
         return web.Response(status=200)
     except Exception as e:
-        logger.error(f"[{bot_id}] Ошибка сохранения payment:
-{e}\n{traceback.format_exc()}")
+        logger.error(f"[{bot_id}] Ошибка сохранения payment: {e}\n{traceback.format_exc()}")
         return web.Response(status=500)
 
 # Обработчик проверки здоровья
 async def handle_health(request):
     logger.info(f"[{PLATFORM}] Получен запрос на /health")
-    return web.Response(status=200, text=f"Server is healthy,
-{len(BOTS)} bots running")
+    return web.Response(status=200, text=f"Server is healthy, {len(BOTS)} bots running")
 
 # Настройка веб-сервера
 app = web.Application()
@@ -579,13 +525,9 @@ app.router.add_post(YOOMONEY_NOTIFY_PATH, handle_yoomoney_notify_generic)
 app.router.add_get(HEALTH_PATH, handle_health)
 app.router.add_post(HEALTH_PATH, handle_health)
 for bot_id in BOTS:
-    app.router.add_post(f"{YOOMONEY_NOTIFY_PATH}/{bot_id}", lambda
-request, bot_id=bot_id: handle_yoomoney_notify(request, bot_id))
-    app.router.add_post(f"{SAVE_PAYMENT_PATH}/{bot_id}", lambda
-request, bot_id=bot_id: handle_save_payment(request, bot_id))
-logger.info(f"Настроены маршруты: {HEALTH_PATH},
-{YOOMONEY_NOTIFY_PATH}, {YOOMONEY_NOTIFY_PATH}/{{bot_id}},
-{SAVE_PAYMENT_PATH}/{{bot_id}}")
+    app.router.add_post(f"{YOOMONEY_NOTIFY_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_yoomoney_notify(request, bot_id))
+    app.router.add_post(f"{SAVE_PAYMENT_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_save_payment(request, bot_id))
+logger.info(f"Настроены маршруты: {HEALTH_PATH}, {YOOMONEY_NOTIFY_PATH}, {YOOMONEY_NOTIFY_PATH}/{{bot_id}}, {SAVE_PAYMENT_PATH}/{{bot_id}}")
 
 # Запуск polling для всех ботов
 async def start_polling():
@@ -597,8 +539,7 @@ async def start_polling():
             max_attempts = 10
             while attempt <= max_attempts:
                 try:
-                    logger.info(f"[{bot_id}] Попытка {attempt}:
-Очистка сессии и пропуск старых обновлений")
+                    logger.info(f"[{bot_id}] Попытка {attempt}: Очистка сессии и пропуск старых обновлений")
                     await bots[bot_id].delete_webhook(drop_pending_updates=True)
                     await bots[bot_id].session.close()
                     await asyncio.sleep(2)
@@ -609,30 +550,22 @@ async def start_polling():
                     logger.info(f"[{bot_id}] Polling успешно запущен")
                     break
                 except Exception as e:
-                    if "Terminated by other getupdates request" in
-str(e).lower():
-                        logger.warning(f"[{bot_id}] Обнаружен конфликт
-getUpdates, попытка очистки сессии")
-                        await
-bots[bot_id].delete_webhook(drop_pending_updates=True)
+                    if "Terminated by other getupdates request" in str(e).lower():
+                        logger.warning(f"[{bot_id}] Обнаружен конфликт getUpdates, попытка очистки сессии")
+                        await bots[bot_id].delete_webhook(drop_pending_updates=True)
                         await bots[bot_id].session.close()
                         await asyncio.sleep(10)
                     elif "Connection reset by peer" in str(e):
-                        logger.warning(f"[{bot_id}] Ошибка соединения,
-повтор через 10 секунд")
+                        logger.warning(f"[{bot_id}] Ошибка соединения, повтор через 10 секунд")
                         await asyncio.sleep(10Strike)
                     else:
-                        logger.error(f"[{bot_id}] Попытка {attempt}:
-Ошибка запуска polling: {e}\n{traceback.format_exc()}")
-                    logger.info(f"[{bot_id}] Повторная попытка через
-10 секунд...")
+                        logger.error(f"[{bot_id}] Попытка {attempt}: Ошибка запуска polling: {e}\n{traceback.format_exc()}")
+                    logger.info(f"[{bot_id}] Повторная попытка через 10 секунд...")
                     await asyncio.sleep(10)
                     attempt += 1
                     if attempt > max_attempts:
-                        logger.error(f"[{bot_id}] Превышено количество
-попыток ({max_attempts}) запуска polling")
-                        raise Exception(f"[{bot_id}] Не удалось
-запустить polling после {max_attempts} попыток")
+                        logger.error(f"[{bot_id}] Превышено количество попыток ({max_attempts}) запуска polling")
+                        raise Exception(f"[{bot_id}] Не удалось запустить polling после {max_attempts} попыток")
         tasks.append(asyncio.create_task(poll(dp, bot_id)))
     await asyncio.gather(*tasks)
 
@@ -653,16 +586,13 @@ async def main():
         logger.info(f"Маршрут доступен: {HOST_URL}{HEALTH_PATH}")
         logger.info(f"Маршрут доступен: {HOST_URL}{YOOMONEY_NOTIFY_PATH}")
         for bot_id in BOTS:
-            logger.info(f"Маршрут доступен:
-{HOST_URL}{YOOMONEY_NOTIFY_PATH}/{bot_id}")
-            logger.info(f"Маршрут доступен:
-{HOST_URL}{SAVE_PAYMENT_PATH}/{bot_id}")
+            logger.info(f"Маршрут доступен: {HOST_URL}{YOOMONEY_NOTIFY_PATH}/{bot_id}")
+            logger.info(f"Маршрут доступен: {HOST_URL}{SAVE_PAYMENT_PATH}/{bot_id}")
         # Держим приложение работающим
         while True:
             await asyncio.sleep(3600)
     except Exception as e:
-        logger.error(f"Критическая ошибка при запуске:
-{e}\n{traceback.format_exc()}")
+        logger.error(f"Критическая ошибка при запуске: {e}\n{traceback.format_exc()}")
         sys.exit(1)
 
 if __name__ == "__main__":
