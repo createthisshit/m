@@ -6,6 +6,7 @@ import hashlib
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.executor import set_webhook
 from aiohttp import web, ClientSession
 from urllib.parse import urlencode
 import traceback
@@ -257,6 +258,7 @@ for bot_id, dp in dispatchers.items():
         try:
             user_id = str(message.from_user.id)
             chat_id = message.chat.id
+            bot = bots[bot_id]
             logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
 
             # Создание платёжной ссылки
@@ -269,7 +271,7 @@ for bot_id, dp in dispatchers.items():
                 "sum": config["PRICE"],
                 "label": payment_label,
                 "receiver": config["YOOMONEY_WALLET"],
-                "successURL": f"https://t.me/{(await bots[bot_id].get_me()).username}"
+                "successURL": f"https://t.me/{(await bot.get_me()).username}"
             }
             payment_url = f"https://yoomoney.ru/quickpay/confirm.xml?{urlencode(payment_params)}"
             
@@ -294,25 +296,26 @@ for bot_id, dp in dispatchers.items():
                             logger.info(f"[{bot_id}] label={payment_label} сохранён на /save_payment для user_id={user_id}")
                         else:
                             logger.error(f"[{bot_id}] Ошибка сохранения на /save_payment: status={response.status}, text={response_text[:100]}...")
-                            await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
+                            await bot.send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                             return
                 except Exception as e:
                     logger.error(f"[{bot_id}] Ошибка связи с /save_payment: {e}")
-                    await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
+                    await bot.send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                     return
             
             # Формируем ответ с кнопкой
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Оплатить", url=payment_url))
             welcome_text = config["DESCRIPTION"].format(price=config["PRICE"])
-            await message.answer(
+            await bot.send_message(
+                chat_id,
                 f"{welcome_text}\n\nПерейдите по ссылке для оплаты {config['PRICE']} рублей:",
                 reply_markup=keyboard
             )
             logger.info(f"[{bot_id}] Отправлена ссылка на оплату для user_id={user_id}, label={payment_label}")
         except Exception as e:
             logger.error(f"[{bot_id}] Ошибка в обработчике /start: {e}\n{traceback.format_exc()}")
-            await message.answer("Произошла ошибка, попробуйте позже.")
+            await bots[bot_id].send_message(chat_id, "Произошла ошибка, попробуйте позже.")
 
 # Проверка подлинности YooMoney уведомления
 def verify_yoomoney_notification(data, bot_id):
@@ -339,7 +342,8 @@ def verify_yoomoney_notification(data, bot_id):
 async def create_unique_invite_link(bot_id, user_id):
     try:
         config = BOTS[bot_id]
-        invite_link = await bots[bot_id].create_chat_invite_link(
+        bot = bots[bot_id]
+        invite_link = await bot.create_chat_invite_link(
             chat_id=config["PRIVATE_CHANNEL_ID"],
             member_limit=1,
             name=f"Invite for user_{user_id}"
@@ -395,13 +399,14 @@ async def handle_yoomoney_notify_generic(request):
                 user_id = result[0]
                 c.execute(f"UPDATE payments_{bot_id} SET status = %s WHERE label = %s", ("success", label))
                 conn.commit()
-                await bots[bot_id].send_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
+                bot = bots[bot_id]
+                await bot.send_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
                 invite_link = await create_unique_invite_link(bot_id, user_id)
                 if invite_link:
-                    await bots[bot_id].send_message(user_id, f"Присоединяйтесь к приватному каналу: {invite_link}")
+                    await bot.send_message(user_id, f"Присоединяйтесь к приватному каналу: {invite_link}")
                     logger.info(f"[{bot_id}] Успешная транзакция и отправка инвайт-ссылки для label={label}, user_id={user_id}")
                 else:
-                    await bots[bot_id].send_message(user_id, "Ошибка создания ссылки на канал. Свяжитесь с поддержкой.")
+                    await bot.send_message(user_id, "Ошибка создания ссылки на канал. Свяжитесь с поддержкой.")
                     logger.error(f"[{bot_id}] Не удалось создать инвайт-ссылку для user_id={user_id}")
             else:
                 logger.error(f"[{bot_id}] Label {label} не найден в базе")
@@ -436,13 +441,14 @@ async def handle_yoomoney_notify(request, bot_id):
                 user_id = result[0]
                 c.execute(f"UPDATE payments_{bot_id} SET status = %s WHERE label = %s", ("success", label))
                 conn.commit()
-                await bots[bot_id].send_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
+                bot = bots[bot_id]
+                await bot.send_message(user_id, "Оплата успешно получена! Доступ к каналу активирован.")
                 invite_link = await create_unique_invite_link(bot_id, user_id)
                 if invite_link:
-                    await bots[bot_id].send_message(user_id, f"Присоединяйтесь к приватному каналу: {invite_link}")
+                    await bot.send_message(user_id, f"Присоединяйтесь к приватному каналу: {invite_link}")
                     logger.info(f"[{bot_id}] Успешная транзакция и отправка инвайт-ссылки для label={label}, user_id={user_id}")
                 else:
-                    await bots[bot_id].send_message(user_id, "Ошибка создания ссылки на канал. Свяжитесь с поддержкой.")
+                    await bot.send_message(user_id, "Ошибка создания ссылки на канал. Свяжитесь с поддержкой.")
                     logger.error(f"[{bot_id}] Не удалось создать инвайт-ссылку для user_id={user_id}")
             else:
                 logger.error(f"[{bot_id}] Label {label} не найден в базе")
@@ -488,10 +494,16 @@ async def handle_webhook(request, bot_id):
             logger.error(f"[{bot_id}] Неизвестный bot_id")
             return web.Response(status=400, text="Unknown bot_id")
         
+        bot = bots[bot_id]
+        dp = dispatchers[bot_id]
+        
+        # Устанавливаем текущий Bot в контексте
+        Bot.set_current(bot)
+        dp.set_current(dp)
+        
         update = await request.json()
         logger.info(f"[{bot_id}] Получено webhook-обновление: {update}")
         
-        dp = dispatchers[bot_id]
         update_obj = types.Update(**update)
         asyncio.create_task(dp.process_update(update_obj))
         
@@ -505,9 +517,10 @@ async def set_webhooks():
     logger.info(f"Установка webhooks для {len(BOTS)} ботов")
     for bot_id in bots:
         try:
+            bot = bots[bot_id]
             webhook_url = f"{HOST_URL}{WEBHOOK_PATH}/{bot_id}"
-            await bots[bot_id].delete_webhook(drop_pending_updates=True)
-            await bots[bot_id].set_webhook(webhook_url)
+            await bot.delete_webhook(drop_pending_updates=True)
+            await bot.set_webhook(webhook_url)
             logger.info(f"[{bot_id}] Webhook успешно установлен: {webhook_url}")
         except Exception as e:
             logger.error(f"[{bot_id}] Ошибка установки webhook: {e}\n{traceback.format_exc()}")
