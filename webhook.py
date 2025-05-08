@@ -257,7 +257,7 @@ for bot_id, dp in dispatchers.items():
             user_id = str(message.from_user.id)
             logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
             keyboard = InlineKeyboardMarkup()
-            keyboard.add(InlineKeyboardButton(text="Пополнить", callback_data=f"pay_{bot_id}"))
+            keyboard.add(InlineKeyboardButton(text="Пополнить", url=f"tg://msg?text=/pay"))
             config = BOTS[bot_id]
             welcome_text = config["DESCRIPTION"].format(price=config["PRICE"])
             await message.answer(welcome_text, reply_markup=keyboard)
@@ -267,16 +267,10 @@ for bot_id, dp in dispatchers.items():
             await message.answer("Произошла ошибка, попробуйте позже.")
 
     @dp.message_handler(commands=['pay'])
-    @dp.callback_query_handler(lambda c: c.data == f"pay_{bot_id}")
-    async def pay_command(message_or_callback: types.Message | types.CallbackQuery, bot_id=bot_id):
+    async def pay_command(message: types.Message, bot_id=bot_id):
         try:
-            if isinstance(message_or_callback, types.Message):
-                user_id = str(message_or_callback.from_user.id)
-                chat_id = message_or_callback.chat.id
-            else:
-                user_id = str(message_or_callback.from_user.id)
-                chat_id = message_or_callback.message.chat.id
-
+            user_id = str(message.from_user.id)
+            chat_id = message.chat.id
             logger.info(f"[{bot_id}] Получена команда /pay от user_id={user_id}")
 
             # Создание платёжной ссылки
