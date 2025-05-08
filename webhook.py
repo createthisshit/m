@@ -29,7 +29,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002640947060,
-        "PRICE": 2.00,
+        "PRICE": 600.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -42,7 +42,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002609563244,
-        "PRICE": 3.00,
+        "PRICE": 625.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -55,7 +55,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002635743315,
-        "PRICE": 4.00,
+        "PRICE": 580.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -68,7 +68,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002606081226,
-        "PRICE": 3.00,
+        "PRICE": 550.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -81,7 +81,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002642788126,
-        "PRICE": 2.00,
+        "PRICE": 600.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -94,7 +94,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002357608478,
-        "PRICE": 2.00,
+        "PRICE": 650.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -107,7 +107,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002542740564,
-        "PRICE": 2.00,
+        "PRICE": 600.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -120,7 +120,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002474766276,
-        "PRICE": 2.00,
+        "PRICE": 600.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -133,7 +133,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002692837479,
-        "PRICE": 2.00,
+        "PRICE": 550.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -159,7 +159,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002624869413,
-        "PRICE": 2.00,
+        "PRICE": 660.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -172,7 +172,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002638222463,
-        "PRICE": 2.00,
+        "PRICE": 500.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -198,7 +198,7 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002456618280,
-        "PRICE": 2.00,
+        "PRICE": 525.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
