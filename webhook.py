@@ -257,7 +257,7 @@ for bot_id, dp in dispatchers.items():
             user_id = str(message.from_user.id)
             logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
             keyboard = InlineKeyboardMarkup()
-            keyboard.add(InlineKeyboardButton(text="Пополнить", url=f"tg://msg?text=/pay"))
+            keyboard.add(InlineKeyboardButton(text="Пополнить", callback_data=f"pay_{bot_id}"))
             config = BOTS[bot_id]
             welcome_text = config["DESCRIPTION"].format(price=config["PRICE"])
             await message.answer(welcome_text, reply_markup=keyboard)
@@ -286,7 +286,7 @@ for bot_id, dp in dispatchers.items():
                 "successURL": f"https://t.me/{(await bots[bot_id].get_me()).username}"
             }
             payment_url = f"https://yoomoney.ru/quickpay/confirm.xml?{urlencode(payment_params)}"
-            
+           
             # Сохранение label:user_id в PostgreSQL
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
@@ -295,7 +295,7 @@ for bot_id, dp in dispatchers.items():
             conn.commit()
             conn.close()
             logger.info(f"[{bot_id}] Сохранено в PostgreSQL: label={payment_label}, user_id={user_id}")
-            
+           
             # Отправка label:user_id на /save_payment
             async with ClientSession() as session:
                 try:
@@ -314,7 +314,7 @@ for bot_id, dp in dispatchers.items():
                     logger.error(f"[{bot_id}] Ошибка связи с /save_payment: {e}")
                     await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                     return
-            
+           
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Оплатить", url=payment_url))
             await bots[bot_id].send_message(chat_id, f"Перейдите по ссылке для оплаты {config['PRICE']} рублей:", reply_markup=keyboard)
@@ -322,6 +322,21 @@ for bot_id, dp in dispatchers.items():
         except Exception as e:
             logger.error(f"[{bot_id}] Ошибка в обработчике /pay: {e}\n{traceback.format_exc()}")
             await bots[bot_id].send_message(chat_id, "Произошла ошибка при создании платежа, попробуйте позже.")
+
+    @dp.callback_query_handler(lambda c: c.data == f"pay_{bot_id}")
+    async def pay_callback(callback_query: types.CallbackQuery, bot_id=bot_id):
+        try:
+            user_id = str(callback_query.from_user.id)
+            chat_id = callback_query.message.chat.id
+            logger.info(f"[{bot_id}] Получен callback pay_{bot_id} от user_id={user_id}")
+            # Отправляем команду /pay в чат
+            await bots[bot_id].send_message(chat_id, "/pay")
+            # Подтверждаем callback, чтобы убрать "часики"
+            await callback_query.answer()
+            logger.info(f"[{bot_id}] Отправлена команда /pay для user_id={user_id}")
+        except Exception as e:
+            logger.error(f"[{bot_id}] Ошибка в обработчике callback pay_{bot_id}: {e}\n{traceback.format_exc()}")
+            await callback_query.answer("Произошла ошибка, попробуйте позже.")
 
 # Проверка подлинности YooMoney уведомления
 def verify_yoomoney_notification(data, bot_id):
