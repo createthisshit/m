@@ -75,6 +75,136 @@ BOTS = {
             "Доступ к каналу 'Мой кайф'."
         )
     },
+    "bot5": {
+        "TOKEN": "7249884916:AAErSUZlJh552jcmyHVBp1BKJQC6MlC5ldM",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002642788126,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot6": {
+        "TOKEN": "7796522161:AAGLVMbHoMHwqyQKDC6YlVsTMUQBcvb8ZYA",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002357608478,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot7": {
+        "TOKEN": "7986965799:AAFpmrCYKQTFxOanxdvwEKXlsLh84TAoMTU",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002542740564,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot8": {
+        "TOKEN": "8091017735:AAF01_wUHzRCk2Oi3wlDhzRhL8yxKOvx2k8",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002474766276,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot9": {
+        "TOKEN": "7656812252:AAHIALM6ORZr2RgnKolEc-m66IFguRNGuvA",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002692837479,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot10": {
+        "TOKEN": "8195156027:AAFmGf_dltQ9ETpswU3U4UTuWv8eRPS16fU",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002342239719,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot11": {
+        "TOKEN": "7908748621:AAH0XS-abiMUPakjefaVlOommENiCZAcLqA",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002624869413,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot12": {
+        "TOKEN": "7241683107:AAEG6RCRM4Ar1sDYpTV8BsaHfGUj2WXobhI",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002638222463,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot13": {
+        "TOKEN": "7741979722:AAEBzPjM4HqoTdNajwdv2plXvdraARgMbhQ",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002459699589,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot14": {
+        "TOKEN": "7629991596:AAHkBKWyvz7T2MdaItlQcL90YnOi0Zh11tY",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002456618280,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
 }
 
 SAVE_PAYMENT_PATH = "/save_payment"
