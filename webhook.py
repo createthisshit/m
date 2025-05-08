@@ -557,7 +557,7 @@ async def start_polling():
                         await asyncio.sleep(10)
                     elif "Connection reset by peer" in str(e):
                         logger.warning(f"[{bot_id}] Ошибка соединения, повтор через 10 секунд")
-                        await asyncio.sleep(10Strike)
+                        await asyncio.sleep(10)
                     else:
                         logger.error(f"[{bot_id}] Попытка {attempt}: Ошибка запуска polling: {e}\n{traceback.format_exc()}")
                     logger.info(f"[{bot_id}] Повторная попытка через 10 секунд...")
