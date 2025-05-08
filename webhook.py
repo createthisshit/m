@@ -286,7 +286,7 @@ for bot_id, dp in dispatchers.items():
                 "successURL": f"https://t.me/{(await bots[bot_id].get_me()).username}"
             }
             payment_url = f"https://yoomoney.ru/quickpay/confirm.xml?{urlencode(payment_params)}"
-           
+            
             # Сохранение label:user_id в PostgreSQL
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
@@ -295,7 +295,7 @@ for bot_id, dp in dispatchers.items():
             conn.commit()
             conn.close()
             logger.info(f"[{bot_id}] Сохранено в PostgreSQL: label={payment_label}, user_id={user_id}")
-           
+            
             # Отправка label:user_id на /save_payment
             async with ClientSession() as session:
                 try:
@@ -314,7 +314,7 @@ for bot_id, dp in dispatchers.items():
                     logger.error(f"[{bot_id}] Ошибка связи с /save_payment: {e}")
                     await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                     return
-           
+            
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Оплатить", url=payment_url))
             await bots[bot_id].send_message(chat_id, f"Перейдите по ссылке для оплаты {config['PRICE']} рублей:", reply_markup=keyboard)
