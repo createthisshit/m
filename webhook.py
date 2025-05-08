@@ -54,7 +54,6 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002635743315,
-        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 2.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
         "PRICE": 4.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
@@ -68,8 +67,137 @@ BOTS = {
         "YOOMONEY_WALLET": "4100118178122985",
         "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
         "PRIVATE_CHANNEL_ID": -1002606081226,
-        "DESCRIPTION": "Тариф: Стандарт\nСтоимость: 4.00 RUB\nСрок: 1 месяц\n\nДоступ к каналу 'Мой кайф'."
         "PRICE": 3.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot5": {
+        "TOKEN": "7249884916:AAErSUZlJh552jcmyHVBp1BKJQC6MlC5ldM",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002642788126,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot6": {
+        "TOKEN": "7796522161:AAGLVMbHoMHwqyQKDC6YlVsTMUQBcvb8ZYA",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002357608478,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot7": {
+        "TOKEN": "7986965799:AAFpmrCYKQTFxOanxdvwEKXlsLh84TAoMTU",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002542740564,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot8": {
+        "TOKEN": "8091017735:AAF01_wUHzRCk2Oi3wlDhzRhL8yxKOvx2k8",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002474766276,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot9": {
+        "TOKEN": "7656812252:AAHIALM6ORZr2RgnKolEc-m66IFguRNGuvA",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002692837479,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot10": {
+        "TOKEN": "8195156027:AAFmGf_dltQ9ETpswU3U4UTuWv8eRPS16fU",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002342239719,
+        "PRICE": 650.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к закрытому каналу 18+"
+        )
+    },
+    "bot11": {
+        "TOKEN": "7908748621:AAH0XS-abiMUPakjefaVlOommENiCZAcLqA",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002624869413,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot12": {
+        "TOKEN": "7241683107:AAEG6RCRM4Ar1sDYpTV8BsaHfGUj2WXobhI",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002638222463,
+        "PRICE": 2.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 'Мой кайф'."
+        )
+    },
+    "bot13": {
+        "TOKEN": "7741979722:AAEBzPjM4HqoTdNajwdv2plXvdraARgMbhQ",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002459699589,
+        "PRICE": 550.00,
+        "DESCRIPTION": (
+            "Тариф: Стандарт\n"
+            "Стоимость: {price} 🇷🇺RUB\n"
+            "Срок действия: 1 месяц\n\n"
+            "Доступ к каналу 18+"
+        )
+    },
+    "bot14": {
+        "TOKEN": "7629991596:AAHkBKWyvz7T2MdaItlQcL90YnOi0Zh11tY",
+        "YOOMONEY_WALLET": "4100118178122985",
+        "NOTIFICATION_SECRET": "CoqQlgE3E5cTzyAKY1LSiLU1",
+        "PRIVATE_CHANNEL_ID": -1002456618280,
+        "PRICE": 2.00,
         "DESCRIPTION": (
             "Тариф: Стандарт\n"
             "Стоимость: {price} 🇷🇺RUB\n"
@@ -130,7 +258,6 @@ for bot_id, dp in dispatchers.items():
             logger.info(f"[{bot_id}] Получена команда /start от user_id={user_id}")
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Пополнить", callback_data=f"pay_{bot_id}"))
-            welcome_text = BOTS[bot_id]["DESCRIPTION"]
             config = BOTS[bot_id]
             welcome_text = config["DESCRIPTION"].format(price=config["PRICE"])
             await message.answer(welcome_text, reply_markup=keyboard)
@@ -159,14 +286,13 @@ for bot_id, dp in dispatchers.items():
                 "quickpay-form": "shop",
                 "paymentType": "AC",
                 "targets": f"Оплата подписки для user_id={user_id}",
-                "sum": 2.00,
                 "sum": config["PRICE"],
                 "label": payment_label,
                 "receiver": config["YOOMONEY_WALLET"],
                 "successURL": f"https://t.me/{(await bots[bot_id].get_me()).username}"
             }
             payment_url = f"https://yoomoney.ru/quickpay/confirm.xml?{urlencode(payment_params)}"
-
+            
             # Сохранение label:user_id в PostgreSQL
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
@@ -175,7 +301,7 @@ for bot_id, dp in dispatchers.items():
             conn.commit()
             conn.close()
             logger.info(f"[{bot_id}] Сохранено в PostgreSQL: label={payment_label}, user_id={user_id}")
-
+            
             # Отправка label:user_id на /save_payment
             async with ClientSession() as session:
                 try:
@@ -194,10 +320,9 @@ for bot_id, dp in dispatchers.items():
                     logger.error(f"[{bot_id}] Ошибка связи с /save_payment: {e}")
                     await bots[bot_id].send_message(chat_id, "Ошибка сервера, попробуйте позже.")
                     return
-
+            
             keyboard = InlineKeyboardMarkup()
             keyboard.add(InlineKeyboardButton(text="Оплатить", url=payment_url))
-            await bots[bot_id].send_message(chat_id, "Перейдите по ссылке для оплаты 2 рублей:", reply_markup=keyboard)
             await bots[bot_id].send_message(chat_id, f"Перейдите по ссылке для оплаты {config['PRICE']} рублей:", reply_markup=keyboard)
             logger.info(f"[{bot_id}] Отправлена ссылка на оплату для user_id={user_id}, label={payment_label}")
         except Exception as e:
@@ -261,21 +386,21 @@ async def handle_yoomoney_notify_generic(request):
     try:
         data = await request.post()
         logger.info(f"[{PLATFORM}] Получено YooMoney уведомление: {dict(data)}")
-
+        
         label = data.get("label")
         if not label:
             logger.error(f"[{PLATFORM}] Отсутствует label в YooMoney уведомлении")
             return web.Response(status=400, text="Missing label")
-
+        
         bot_id = find_bot_id_by_label(label)
         if not bot_id:
             logger.error(f"[{PLATFORM}] Не найден bot_id для label={label}")
             return web.Response(status=400, text="Bot not found for label")
-
+        
         if not verify_yoomoney_notification(data, bot_id):
             logger.error(f"[{bot_id}] Неверный sha1_hash в YooMoney уведомлении")
             return web.Response(status=400, text="Invalid hash")
-
+        
         if data.get("notification_type") in ["p2p-incoming", "card-incoming"]:
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
@@ -296,7 +421,7 @@ async def handle_yoomoney_notify_generic(request):
             else:
                 logger.error(f"[{bot_id}] Label {label} не найден в базе")
             conn.close()
-
+        
         return web.Response(status=200)
     except Exception as e:
         logger.error(f"[{PLATFORM}] Ошибка обработки YooMoney уведомления: {e}\n{traceback.format_exc()}")
@@ -307,16 +432,16 @@ async def handle_yoomoney_notify(request, bot_id):
     try:
         data = await request.post()
         logger.info(f"[{bot_id}] Получено YooMoney уведомление: {dict(data)}")
-
+        
         if not verify_yoomoney_notification(data, bot_id):
             logger.error(f"[{bot_id}] Неверный sha1_hash в YooMoney уведомлении")
             return web.Response(status=400, text="Invalid hash")
-
+        
         label = data.get("label")
         if not label:
             logger.error(f"[{bot_id}] Отсутствует label в YooMoney уведомлении")
             return web.Response(status=400, text="Missing label")
-
+        
         if data.get("notification_type") in ["p2p-incoming", "card-incoming"]:
             conn = psycopg2.connect(DB_CONNECTION)
             c = conn.cursor()
@@ -337,7 +462,7 @@ async def handle_yoomoney_notify(request, bot_id):
             else:
                 logger.error(f"[{bot_id}] Label {label} не найден в базе")
             conn.close()
-
+        
         return web.Response(status=200)
     except Exception as e:
         logger.error(f"[{bot_id}] Ошибка обработки YooMoney уведомлений: {e}\n{traceback.format_exc()}")
@@ -353,7 +478,7 @@ async def handle_save_payment(request, bot_id):
         if not label or not user_id:
             logger.error(f"[{bot_id}] Отсутствует label или user_id в запросе")
             return web.Response(status=400, text="Missing label or user_id")
-
+        
         conn = psycopg2.connect(DB_CONNECTION)
         c = conn.cursor()
         c.execute(f"INSERT INTO payments_{bot_id} (label, user_id, status) VALUES (%s, %s, %s) ON CONFLICT (label) DO UPDATE SET user_id = %s, status = %s",
