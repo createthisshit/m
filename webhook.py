@@ -210,6 +210,7 @@ BOTS = {
 SAVE_PAYMENT_PATH = "/save_payment"
 YOOMONEY_NOTIFY_PATH = "/yoomoney_notify"
 HEALTH_PATH = "/health"
+WEBHOOK_PATH = "/webhook"
 DB_CONNECTION = "postgresql://postgres.bdjjtisuhtbrogvotves:Alex4382!@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
 HOST_URL = os.getenv("HOST_URL", "https://favourite-brinna-createthisshit-eca5920c.koyeb.app")
 
@@ -480,6 +481,38 @@ async def handle_health(request):
     logger.info(f"[{PLATFORM}] Получен запрос на /health")
     return web.Response(status=200, text=f"Server is healthy, {len(BOTS)} bots running")
 
+# Обработчик webhook
+async def handle_webhook(request, bot_id):
+    try:
+        if bot_id not in dispatchers:
+            logger.error(f"[{bot_id}] Неизвестный bot_id")
+            return web.Response(status=400, text="Unknown bot_id")
+        
+        update = await request.json()
+        logger.info(f"[{bot_id}] Получено webhook-обновление: {update}")
+        
+        dp = dispatchers[bot_id]
+        update_obj = types.Update(**update)
+        asyncio.create_task(dp.process_update(update_obj))
+        
+        return web.Response(status=200)
+    except Exception as e:
+        logger.error(f"[{bot_id}] Ошибка обработки webhook: {e}\n{traceback.format_exc()}")
+        return web.Response(status=500)
+
+# Установка webhooks для всех ботов
+async def set_webhooks():
+    logger.info(f"Установка webhooks для {len(BOTS)} ботов")
+    for bot_id in bots:
+        try:
+            webhook_url = f"{HOST_URL}{WEBHOOK_PATH}/{bot_id}"
+            await bots[bot_id].delete_webhook(drop_pending_updates=True)
+            await bots[bot_id].set_webhook(webhook_url)
+            logger.info(f"[{bot_id}] Webhook успешно установлен: {webhook_url}")
+        except Exception as e:
+            logger.error(f"[{bot_id}] Ошибка установки webhook: {e}\n{traceback.format_exc()}")
+            sys.exit(1)
+
 # Настройка веб-сервера
 app = web.Application()
 app.router.add_post(YOOMONEY_NOTIFY_PATH, handle_yoomoney_notify_generic)
@@ -488,53 +521,15 @@ app.router.add_post(HEALTH_PATH, handle_health)
 for bot_id in BOTS:
     app.router.add_post(f"{YOOMONEY_NOTIFY_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_yoomoney_notify(request, bot_id))
     app.router.add_post(f"{SAVE_PAYMENT_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_save_payment(request, bot_id))
-logger.info(f"Настроены маршруты: {HEALTH_PATH}, {YOOMONEY_NOTIFY_PATH}, {YOOMONEY_NOTIFY_PATH}/{{bot_id}}, {SAVE_PAYMENT_PATH}/{{bot_id}}")
+    app.router.add_post(f"{WEBHOOK_PATH}/{bot_id}", lambda request, bot_id=bot_id: handle_webhook(request, bot_id))
+logger.info(f"Настроены маршруты: {HEALTH_PATH}, {YOOMONEY_NOTIFY_PATH}, {YOOMONEY_NOTIFY_PATH}/{{bot_id}}, {SAVE_PAYMENT_PATH}/{{bot_id}}, {WEBHOOK_PATH}/{{bot_id}}")
 
-# Запуск polling для всех ботов
-async def start_polling():
-    logger.info(f"Запуск polling для {len(BOTS)} ботов")
-    tasks = []
-    for bot_id, dp in dispatchers.items():
-        async def poll(dp, bot_id):
-            attempt = 1
-            max_attempts = 10
-            while attempt <= max_attempts:
-                try:
-                    logger.info(f"[{bot_id}] Попытка {attempt}: Очистка сессии и пропуск старых обновлений")
-                    await bots[bot_id].delete_webhook(drop_pending_updates=True)
-                    await bots[bot_id].session.close()
-                    await asyncio.sleep(2)
-                    await bots[bot_id].get_session()
-                    await dp.skip_updates()
-                    logger.info(f"[{bot_id}] Попытка {attempt}: Запуск polling")
-                    await dp.start_polling(timeout=20)
-                    logger.info(f"[{bot_id}] Polling успешно запущен")
-                    break
-                except Exception as e:
-                    if "Terminated by other getupdates request" in str(e).lower():
-                        logger.warning(f"[{bot_id}] Обнаружен конфликт getUpdates, попытка очистки сессии")
-                        await bots[bot_id].delete_webhook(drop_pending_updates=True)
-                        await bots[bot_id].session.close()
-                        await asyncio.sleep(10)
-                    elif "Connection reset by peer" in str(e):
-                        logger.warning(f"[{bot_id}] Ошибка соединения, повтор через 10 секунд")
-                        await asyncio.sleep(10)
-                    else:
-                        logger.error(f"[{bot_id}] Попытка {attempt}: Ошибка запуска polling: {e}\n{traceback.format_exc()}")
-                    logger.info(f"[{bot_id}] Повторная попытка через 10 секунд...")
-                    await asyncio.sleep(10)
-                    attempt += 1
-                    if attempt > max_attempts:
-                        logger.error(f"[{bot_id}] Превышено количество попыток ({max_attempts}) запуска polling")
-                        raise Exception(f"[{bot_id}] Не удалось запустить polling после {max_attempts} попыток")
-        tasks.append(asyncio.create_task(poll(dp, bot_id)))
-    await asyncio.gather(*tasks)
-
-# Запуск polling и веб-сервера
+# Запуск веб-сервера и установка webhooks
 async def main():
     try:
-        # Запускаем polling в отдельной задаче
-        asyncio.create_task(start_polling())
+        # Устанавливаем webhooks
+        await set_webhooks()
+        
         # Запускаем веб-сервер
         logger.info("Инициализация веб-сервера")
         port = int(os.getenv("PORT", 8000))
@@ -543,12 +538,15 @@ async def main():
         site = web.TCPSite(runner, '0.0.0.0', port)
         await site.start()
         logger.info(f"Веб-сервер запущен на порту {port}")
+        
         # Проверяем доступность маршрутов
         logger.info(f"Маршрут доступен: {HOST_URL}{HEALTH_PATH}")
         logger.info(f"Маршрут доступен: {HOST_URL}{YOOMONEY_NOTIFY_PATH}")
         for bot_id in BOTS:
             logger.info(f"Маршрут доступен: {HOST_URL}{YOOMONEY_NOTIFY_PATH}/{bot_id}")
             logger.info(f"Маршрут доступен: {HOST_URL}{SAVE_PAYMENT_PATH}/{bot_id}")
+            logger.info(f"Маршрут доступен: {HOST_URL}{WEBHOOK_PATH}/{bot_id}")
+        
         # Держим приложение работающим
         while True:
             await asyncio.sleep(3600)
