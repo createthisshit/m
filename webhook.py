@@ -358,7 +358,7 @@ user_id={user_id}")
             logger.info(f"[{bot_id}] Получен callback pay_{bot_id} от
 user_id={user_id}")
 
-            # Создаём объект сообщения для вызова pay_command
+            # Создаём фейковый объект сообщения для pay_command
             fake_message = types.Message(
                 message_id=callback_query.message.message_id,
                 from_user=callback_query.from_user,
@@ -594,8 +594,8 @@ async def start_polling():
     for bot_id, dp in dispatchers.items():
         async def poll(dp, bot_id):
             attempt = 1
-            max_attempts = 20  # Увеличиваем количество попыток
-            while True:  # Бесконечный цикл для перезапуска
+            max_attempts = 10
+            while attempt <= max_attempts:
                 try:
                     logger.info(f"[{bot_id}] Попытка {attempt}:
 Очистка сессии и пропуск старых обновлений")
@@ -605,7 +605,7 @@ async def start_polling():
                     await bots[bot_id].get_session()
                     await dp.skip_updates()
                     logger.info(f"[{bot_id}] Попытка {attempt}: Запуск polling")
-                    await dp.start_polling(timeout=20, reset_webhook=True)
+                    await dp.start_polling(timeout=20)
                     logger.info(f"[{bot_id}] Polling успешно запущен")
                     break
                 except Exception as e:
@@ -620,7 +620,7 @@ bots[bot_id].delete_webhook(drop_pending_updates=True)
                     elif "Connection reset by peer" in str(e):
                         logger.warning(f"[{bot_id}] Ошибка соединения,
 повтор через 10 секунд")
-                        await asyncio.sleep(10)
+                        await asyncio.sleep(10Strike)
                     else:
                         logger.error(f"[{bot_id}] Попытка {attempt}:
 Ошибка запуска polling: {e}\n{traceback.format_exc()}")
@@ -629,9 +629,10 @@ bots[bot_id].delete_webhook(drop_pending_updates=True)
                     await asyncio.sleep(10)
                     attempt += 1
                     if attempt > max_attempts:
-                        logger.warning(f"[{bot_id}] Превышено
-количество попыток ({max_attempts}), сброс попыток")
-                        attempt = 1  # Сбрасываем счётчик для бесконечного цикла
+                        logger.error(f"[{bot_id}] Превышено количество
+попыток ({max_attempts}) запуска polling")
+                        raise Exception(f"[{bot_id}] Не удалось
+запустить polling после {max_attempts} попыток")
         tasks.append(asyncio.create_task(poll(dp, bot_id)))
     await asyncio.gather(*tasks)
 
